@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Engine", "Engine\Engine.csproj", "{38AC55B4-A105-468C-963F-8C7696DD147A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THANOS", "THANOS\THANOS.csproj", "{B08BF061-5734-4A3C-8428-947A92F1B989}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
