@@ -23,7 +23,7 @@ namespace THANOS
 
         private void frmInjection_Load(object sender, EventArgs e)
         {
-            //nothin yet
+            //nothin yet :P
             
         }
     }
