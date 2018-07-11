@@ -12,9 +12,14 @@ namespace Engine.ProcessCore
         private IntPtr hProcess;
         private int procId;
         private Logger log;
+        private Process _proc;
 
         public IntPtr ProcessHandle => hProcess;
         public int ProcessId => procId;
+
+        public IntPtr BaseAddress => _proc.MainModule.BaseAddress;
+        public int SizeOfProcess => _proc.MainModule.ModuleMemorySize;
+        public ProcessModuleCollection LoadedModules => _proc.Modules;
 
         public void SetDebugToken()
         {
@@ -42,6 +47,7 @@ namespace Engine.ProcessCore
             allocatedMem = new Dictionary<IntPtr, uint>();
 
             procId = processId;
+            _proc = Process.GetProcessById(processId);
             LoadProcess(processId);
             if (hProcess == IntPtr.Zero)
                 this.Dispose(); 
@@ -136,6 +142,38 @@ namespace Engine.ProcessCore
             return false;
         }
 
+        public byte[] ReadBytes(IntPtr addrToReadFrom, int size)
+        {
+            uint bytesRead = 0;
+            byte[] bytes = new byte[size];
+            if(WinAPI.ReadProcessMemory(hProcess, addrToReadFrom, bytes, size, out bytesRead))
+                if (bytesRead == size)
+                {
+                    log.Log(LogType.Success, "Successfully read {0} bytes from 0x{1}", size.ToString(),
+                        (Environment.Is64BitProcess
+                            ? addrToReadFrom.ToInt64().ToString("X16")
+                            : addrToReadFrom.ToInt32().ToString("X8")));
+                    return bytes;
+                }
+                else
+                {
+                    log.Log(LogType.Warning, "Partially successfully read {0} bytes from 0x{1} (Only read {2} bytes!): {3}",
+                        size,
+                        (Environment.Is64BitProcess
+                            ? addrToReadFrom.ToInt64().ToString("X16")
+                            : addrToReadFrom.ToInt32().ToString("X8")), bytesRead.ToString(),
+                        Marshal.GetLastWin32Error().ToString("X"));
+
+                    return bytes;
+                }
+            else
+                log.Log(LogType.Failure, "Failed to read {0} bytes from 0x{1}: {2}", size.ToString(),
+                    (Environment.Is64BitProcess
+                        ? addrToReadFrom.ToInt64().ToString("X16")
+                        : addrToReadFrom.ToInt32().ToString("X8")), Marshal.GetLastWin32Error().ToString("X"));
+
+            return null;
+        }
         public IntPtr Allocate(int size)
         {
             return Allocate((uint) size);
@@ -187,11 +225,16 @@ namespace Engine.ProcessCore
             {
                 Tokenizer.Initiate();
 
-                var tmp = WinAPI.OpenProcess(WinAPI.ProcessAccessFlags.All, false, procId);
-                if (tmp != IntPtr.Zero)
+                hProcess = WinAPI.OpenProcess(
+                    WinAPI.ProcessAccessFlags.All | WinAPI.ProcessAccessFlags.CreateProcess |
+                    WinAPI.ProcessAccessFlags.CreateThread | WinAPI.ProcessAccessFlags.QueryInformation |
+                    WinAPI.ProcessAccessFlags.VirtualMemoryOperation | WinAPI.ProcessAccessFlags.VirtualMemoryRead |
+                    WinAPI.ProcessAccessFlags.VirtualMemoryWrite, false, procId);
+                if (hProcess != IntPtr.Zero)
                 {
                     log.Log(LogType.Success, "Process Opened succesfully!");
-                    hProcess = tmp;
+                    SetDebugToken();
+                    //hProcess = tmp;
                 }
                 else
                 {

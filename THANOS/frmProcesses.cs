@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Engine;
 using Engine.Extensions.ListView;
+using Engine.ProcessCore;
 
 namespace THANOS
 {
@@ -21,6 +22,8 @@ namespace THANOS
         private Logger log;
         private BackgroundWorker bw = new BackgroundWorker();
         private ColumnSorter lvwColumnSorter;
+
+        public Core Selected { get; set; }
 
         public frmProcesses(Logger Log = null)
         {
@@ -38,8 +41,20 @@ namespace THANOS
 
             lstProcs.ListViewItemSorter = lvwColumnSorter;
             lstProcs.ColumnClick += LstProcs_ColumnClick;
+            lstProcs.MouseDoubleClick += LstProcs_MouseDoubleClick;
 
             bw.RunWorkerAsync();
+        }
+
+        private void LstProcs_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (lstProcs.SelectedIndices.Count == 1)
+            {
+                //Selected = new Core(Process.GetProcessById(int.Parse(lstProcs.SelectedItems[0].SubItems[1].Text)));
+                Program.TargetProcess = new Core(Process.GetProcessById(int.Parse(lstProcs.SelectedItems[0].SubItems[1].Text)));
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
         }
 
         private void LstProcs_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -78,6 +93,16 @@ namespace THANOS
             renderProcessesOnListView();
         }
 
+        public class ProcessItemClass
+        {
+            public string ProcessName { get; set; }
+            public string ProcessId { get; set; }
+            public string ProcessStatus { get; set; }
+            public string ProcessOwner { get; set; }
+            public string ProcessMemory { get; set; }
+            public string ProcessDescription { get; set; }
+        }
+
         delegate void renderDelegate();
         /// <summary>
         /// This method renders all the processes of Windows on a ListView with some values and icons.
@@ -106,7 +131,7 @@ namespace THANOS
                         string status = (process.Responding == true ? "Responding" : "Not responding");
 
                         // Retrieve the object of extra information of the process (to retrieve Username and Description)
-                        dynamic extraProcessInfo = GetProcessExtraInformation(process.Id);
+                        //dynamic extraProcessInfo = GetProcessExtraInformation(process.Id);
 
                         // Create an array of string that will store the information to display in our 
                         string[] row =
@@ -118,11 +143,11 @@ namespace THANOS
                             // 3 Process status
                             status,
                             // 4 Username that started the process
-                            extraProcessInfo.Username,
+                            "?",//extraProcessInfo.Username,
                             // 5 Memory usage
                             BytesToReadableValue(process.PrivateMemorySize64),
                             // 6 Description of the process
-                            extraProcessInfo.Description
+                            "?"//extraProcessInfo.Description
                         };
 
                         //

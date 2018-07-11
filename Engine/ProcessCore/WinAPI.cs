@@ -142,6 +142,10 @@ namespace Engine.ProcessCore
         [DllImport(psapi, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         public static extern uint GetModuleBaseName(IntPtr hProcess, ulong hModule, [Out] StringBuilder lpBaseName, uint nSize);
 
+        [DllImport(psapi, CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool GetModuleInformation(IntPtr processHandle, IntPtr moduleHandle,
+            NtModuleInfo ntModuleInfo, uint nSize);
+
         #endregion
 
         #region ntdll.dll
@@ -203,6 +207,15 @@ namespace Engine.ProcessCore
         #endregion
 
         #region kernel32.dll
+
+        [DllImport(kernel32)]
+        public static extern uint GetCurrentProcessId();
+
+        [DllImport(kernel32, SetLastError = true)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, out uint lpNumberOfBytesRead);
+
+        [DllImport(kernel32, SetLastError = true)]
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, ref uint lpNumberOfBytesRead);
 
         [DllImport(kernel32, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern uint GetPackageFamilyName(IntPtr hProcess, ref uint packageFamilyNameLength,
@@ -472,6 +485,23 @@ namespace Engine.ProcessCore
         #endregion
 
         #region Structures
+
+        #region NtModuleInfo
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NtModuleInfo
+        {
+            // Token: 0x04002EF0 RID: 12016
+            public IntPtr BaseOfDll;// = (IntPtr)0;
+
+            // Token: 0x04002EF1 RID: 12017
+            public int SizeOfImage;
+
+            // Token: 0x04002EF2 RID: 12018
+            public IntPtr EntryPoint;// = (IntPtr)0;
+        }
+
+            #endregion
 
         #region SECURITY_DESCRIPTOR
 

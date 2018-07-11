@@ -7,20 +7,45 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Engine", "Engine\Engine.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THANOS", "THANOS\THANOS.csproj", "{B08BF061-5734-4A3C-8428-947A92F1B989}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsmResolver", "..\AsmResolver2\AsmResolver\AsmResolver.csproj", "{228B5994-1035-4EB0-A095-8D85B6EE1146}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AB5F4C5E-7755-47EA-99EC-E8652E05BC54}"
+	ProjectSection(SolutionItems) = preProject
+		README.MD = README.MD
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38AC55B4-A105-468C-963F-8C7696DD147A}.Debug|x64.ActiveCfg = Debug|x64
+		{38AC55B4-A105-468C-963F-8C7696DD147A}.Debug|x64.Build.0 = Debug|x64
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38AC55B4-A105-468C-963F-8C7696DD147A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38AC55B4-A105-468C-963F-8C7696DD147A}.Release|x64.ActiveCfg = Release|x64
+		{38AC55B4-A105-468C-963F-8C7696DD147A}.Release|x64.Build.0 = Release|x64
 		{B08BF061-5734-4A3C-8428-947A92F1B989}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B08BF061-5734-4A3C-8428-947A92F1B989}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Debug|x64.ActiveCfg = Debug|x64
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Debug|x64.Build.0 = Debug|x64
 		{B08BF061-5734-4A3C-8428-947A92F1B989}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B08BF061-5734-4A3C-8428-947A92F1B989}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Release|x64.ActiveCfg = Release|x64
+		{B08BF061-5734-4A3C-8428-947A92F1B989}.Release|x64.Build.0 = Release|x64
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Debug|x64.ActiveCfg = Debug|x64
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Debug|x64.Build.0 = Debug|x64
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Release|x64.ActiveCfg = Release|x64
+		{228B5994-1035-4EB0-A095-8D85B6EE1146}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
