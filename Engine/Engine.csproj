@@ -79,12 +79,9 @@
     <Compile Include="Assembly\ImportExportReader.cs" />
     <Compile Include="CryptoAPI\CCAPI.cs" />
     <Compile Include="Extensions\ListView\ColumnSorter.cs" />
-    <Compile Include="Injectors\CRT\Injector.cs" />
+    <Compile Include="Extensions\QuickExt.cs" />
     <Compile Include="Injectors\IInjector.cs" />
-    <Compile Include="Injectors\NCTE\Injector.cs" />
-    <Compile Include="Injectors\QUA\Injector.cs" />
-    <Compile Include="Injectors\RCUT\Injector.cs" />
-    <Compile Include="Injectors\STC\Injector.cs" />
+    <Compile Include="Injectors\InjectionsLoader.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="ProcessCore\Core.cs" />
     <Compile Include="ProcessCore\Exts.cs" />
@@ -94,9 +91,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UWP\Helper.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Injectors\MM\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\AsmResolver2\AsmResolver\AsmResolver.csproj">
       <Project>{228b5994-1035-4eb0-a095-8d85b6ee1146}</Project>

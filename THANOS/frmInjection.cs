@@ -7,10 +7,12 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Engine;
 using Engine.Assembly;
+using Engine.Injectors;
 using Engine.ProcessCore;
 using PeNet;
 
@@ -33,8 +35,14 @@ namespace THANOS
         {
             log.Log(LogType.Normal, "[+] Loading information about targeted process...");
 
+            this.Text = string.Format("[WinPIT x{0}] Injector", (Environment.Is64BitProcess ? "64" : "32"));
+
             try
             {
+
+                var th = new Thread(new ThreadStart(LoadInjections));
+                th.Start();
+
                 //var yx = proc.LoadedModules;
                 //foreach (ProcessModule pm in yx)
                 //{
@@ -81,6 +89,38 @@ namespace THANOS
             {
                 log.Log(ex, "An error occured loading the information about the process: {0}",
                     Marshal.GetLastWin32Error().ToString("X"));
+            }
+        }
+
+        delegate void LoadInjectionsDelegate();
+
+        private List<IInjector> Injectors;
+
+        void LoadInjections()
+        {
+            if (this.InvokeRequired)
+                this.Invoke(new LoadInjectionsDelegate(LoadInjections));
+            else
+            {
+                Injectors = InjectionsLoader.GetInjectors();
+                foreach (var injector in Injectors)
+                {
+                    cbMethods.Items.Add(injector.SelfFileName);
+                }
+            }
+        }
+
+        private void cbMethods_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbMethods.SelectedIndex > -1)
+            {
+                var x = Injectors.First(t => t.SelfFileName == cbMethods.Items[cbMethods.SelectedIndex].ToString());
+                txtInjInfo.Text = string.Format("About: {0}{0}{1}{0}{0} Unique ID: {0}{2}{0}", Environment.NewLine, x.About,
+                    x.UniqueId);
+            }
+            else
+            {
+                txtInjInfo.Text = "";
             }
         }
     }
