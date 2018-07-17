@@ -208,6 +208,9 @@ namespace Engine.ProcessCore
 
         #region kernel32.dll
 
+        [DllImport(kernel32, CallingConvention = CallingConvention.Winapi)]
+        public static extern bool IsWow64Process(IntPtr hSourceProcessHandle, out bool isWow64);
+
         [DllImport(kernel32)]
         public static extern uint GetCurrentProcessId();
 

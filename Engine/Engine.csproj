@@ -62,6 +62,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Windows.Forms" />
@@ -77,7 +78,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assembly\ImportExportReader.cs" />
+    <Compile Include="Assembly\PEReader.cs" />
     <Compile Include="CryptoAPI\CCAPI.cs" />
+    <Compile Include="Extensions\SystemIconsImageList.cs" />
     <Compile Include="Extensions\ListView\ColumnSorter.cs" />
     <Compile Include="Extensions\QuickExt.cs" />
     <Compile Include="Injectors\IInjector.cs" />

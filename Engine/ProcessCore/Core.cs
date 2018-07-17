@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -20,6 +21,18 @@ namespace Engine.ProcessCore
         public IntPtr BaseAddress => _proc.MainModule.BaseAddress;
         public int SizeOfProcess => _proc.MainModule.ModuleMemorySize;
         public ProcessModuleCollection LoadedModules => _proc.Modules;
+
+        public string FileName => Path.GetFileName(_proc.MainModule.FileName);
+        public string ProcessName => _proc.ProcessName;
+
+        public string ProcessOwner => _proc.MachineName;
+        public string ProcessStatus => _proc.Responding ? "Running" : "Not Running";
+        public string ProcessPriority => Enum.GetName(typeof(ProcessPriorityClass), _proc.PriorityClass);
+
+        public string ProcessMemoryUsage => ExactMemUsage().ToString() + " MB";
+        public string ProcessTitle => _proc.MainWindowTitle;
+
+        public bool Is64bit => is64bitProc();
 
         public void SetDebugToken()
         {
@@ -48,9 +61,16 @@ namespace Engine.ProcessCore
 
             procId = processId;
             _proc = Process.GetProcessById(processId);
+            _proc.Exited += _proc_Exited;
             LoadProcess(processId);
             if (hProcess == IntPtr.Zero)
                 this.Dispose(); 
+        }
+
+        private void _proc_Exited(object sender, EventArgs e)
+        {
+            log.Log(LogType.Warning, "Attached process has exited - disposing!");
+            this.Dispose();
         }
 
         public IntPtr GetLoadLibraryPtr()
@@ -217,6 +237,22 @@ namespace Engine.ProcessCore
                 log.Log(LogType.Failure, "Failed to CreateThread on process: {0}", Marshal.GetLastWin32Error().ToString("X"));
 
             return tmp;
+        }
+
+        long ExactMemUsage()
+        {
+            long memsize = 0;
+            PerformanceCounter pc = new PerformanceCounter("Process", "Working Set - Private", _proc.ProcessName);
+            memsize = (long) (pc.NextValue() / (1024 * 1024));
+
+            return memsize;
+        }
+
+        bool is64bitProc()
+        {
+            bool is64 = false;
+            var m = WinAPI.IsWow64Process(hProcess, out is64);
+            return is64;
         }
 
         void LoadProcess(int procId)

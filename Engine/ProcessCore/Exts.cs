@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Engine.ProcessCore
@@ -20,6 +21,23 @@ namespace Engine.ProcessCore
             var destRef = __makeref(dest);
             *(IntPtr*)&destRef = *(IntPtr*)&sourceRef;
             return __refvalue(destRef, TDest);
+        }
+
+        public static string BytesToReadableValue(this long number)
+        {
+            List<string> suffixes = new List<string> { " B", " KB", " MB", " GB", " TB", " PB" };
+
+            for (int i = 0; i < suffixes.Count; i++)
+            {
+                long temp = number / (int)Math.Pow(1024, i + 1);
+
+                if (temp == 0)
+                {
+                    return (number / (int)Math.Pow(1024, i)) + suffixes[i];
+                }
+            }
+
+            return number.ToString();
         }
     }
 }

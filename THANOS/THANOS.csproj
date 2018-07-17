@@ -89,6 +89,12 @@
     <Compile Include="frmInjection.Designer.cs">
       <DependentUpon>frmInjection.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmOpenFile.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmOpenFile.Designer.cs">
+      <DependentUpon>frmOpenFile.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmProcesses.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -123,6 +129,9 @@
   <ItemGroup>
     <EmbeddedResource Include="frmInjection.resx">
       <DependentUpon>frmInjection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmOpenFile.resx">
+      <DependentUpon>frmOpenFile.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmProcesses.resx">
       <DependentUpon>frmProcesses.cs</DependentUpon>

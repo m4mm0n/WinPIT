@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Engine
 {
@@ -27,16 +28,21 @@ namespace Engine
         private string datetimeFormat;
         private string logFilename;
         private string logOwner;
+        private bool useVerbose;
 
-        public Logger(LoggerType loggingType, string loggerOwner = null)
+        public Logger(LoggerType loggingType, string loggerOwner = null, bool isVerbose = false)
         {
             loggerType = loggingType;
             logOwner = loggerOwner ?? "";
+            useVerbose = isVerbose;
 
             if (loggingType == LoggerType.File | loggingType == LoggerType.Console_File)
             {
+                if (!Directory.Exists("\\LOGS\\"))
+                    Directory.CreateDirectory("LOGS");
+
                 datetimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
-                logFilename = loggerOwner + ".log";
+                logFilename = "LOGS\\" + loggerOwner + ".log";
 
                 string logHeader = " __      __.__      __________.______________" + Environment.NewLine +
                                    @"/  \    /  \__| ____\______   \   \__    ___/" + Environment.NewLine +
@@ -72,7 +78,6 @@ namespace Engine
             Log(LogType.Exception, ex + format, args);
         }
 
-#if DEBUG
         /// <summary>
         /// Logs the input
         /// Using <see cref="System.Diagnostics.Debug"/> to print directly
@@ -85,20 +90,33 @@ namespace Engine
             Log(LogType.Debug, format, args);
             System.Diagnostics.Debug.Print(format, args);
         }
-#endif
+
 
         void WriteFormattedLog(LogType level, string text)
         {
             switch (loggerType)
             {
                 case LoggerType.Console:
-                    WriteConsole(level, text);
+                    if(level == LogType.Debug | level == LogType.Exception)
+                    {
+                        if (useVerbose)
+                            WriteConsole(level, text);
+                    }
+                    else
+                        WriteConsole(level, text);
                     break;
                 case LoggerType.File:
                     WriteFile(level, text);
                     break;
                 case LoggerType.Console_File:
-                    WriteConsole(level, text);
+                    if (level == LogType.Debug | level == LogType.Exception)
+                    {
+                        if (useVerbose)
+                            WriteConsole(level, text);
+                    }
+                    else
+                        WriteConsole(level, text);
+
                     WriteFile(level, text);
                     break;
             }
@@ -286,7 +304,7 @@ namespace Engine
             }
             catch
             {
-                throw;
+                //throw;
             }
         }
 

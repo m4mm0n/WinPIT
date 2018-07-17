@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,6 +15,9 @@ using Engine;
 using Engine.Assembly;
 using Engine.Injectors;
 using Engine.ProcessCore;
+using Engine.UWP;
+using MetroFramework;
+using MetroFramework.Forms;
 using PeNet;
 
 namespace THANOS
@@ -22,13 +26,16 @@ namespace THANOS
     {
         private Core proc;
         private Logger log;
+        private string FileToInject;
 
         public frmInjection(Core core)
         {
-            log = new Logger(LoggerType.Console_File, "THANOS.frmInjection");
+
+            InitializeComponent();
+
+            log = new Logger(LoggerType.Console_File, "THANOS.frmInjection", false);
 
             proc = core;
-            InitializeComponent();
         }
 
         private void frmInjection_Load(object sender, EventArgs e)
@@ -43,6 +50,31 @@ namespace THANOS
                 var th = new Thread(new ThreadStart(LoadInjections));
                 th.Start();
 
+                string mods = "";
+                string architecture = "";
+                string basicInfo = "";
+
+                try
+                {
+                    foreach (ProcessModule pm in proc.LoadedModules)
+                    {
+                        mods += string.Format("{0} [EP: 0x{1}]{2}", Path.GetFileName(pm.FileName),
+                            (proc.Is64bit
+                                ? pm.EntryPointAddress.ToInt64().ToString("X16")
+                                : pm.EntryPointAddress.ToInt32().ToString("X8")), Environment.NewLine);
+                    }
+                }
+                catch { }
+
+                architecture = "Architecture: x" + (proc.Is64bit ? "64" : "32") + Environment.NewLine;
+                basicInfo = string.Format(
+                    "Status: {0}{1}Memory Usage: {2}{1}Name: {3}{1}Description: {4}{1}Is UWP: {5}{1}Process Priority: {6}{1}", proc.ProcessStatus,
+                    Environment.NewLine, proc.ProcessMemoryUsage, proc.ProcessName, proc.ProcessTitle,
+                    Helper.IsProcessUWP(proc.ProcessId) ? "Yes" : "No", proc.ProcessPriority);
+
+                txtAnalysis.Text = basicInfo + Environment.NewLine + architecture + Environment.NewLine + mods;
+
+                //metroTabControl1.SelectedIndex = 0;
                 //var yx = proc.LoadedModules;
                 //foreach (ProcessModule pm in yx)
                 //{
@@ -121,6 +153,42 @@ namespace THANOS
             else
             {
                 txtInjInfo.Text = "";
+            }
+        }
+
+        private void metroButton1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Filter = "Dynamic Link Library (*.dll)|*.dll|System Driver Library (*.sys/*.drv)|*.sys;*.drv"
+            };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                if (File.Exists(ofd.FileName))
+                {
+                    PEReader per = new PEReader(ofd.FileName);
+                    txtDllToInj.Text = "File: " + Path.GetFileName(ofd.FileName) + Environment.NewLine +
+                                      Environment.NewLine + "EXPORTS:" + Environment.NewLine + Environment.NewLine;
+
+                    if(per.GetExports != null)
+                    {
+                        foreach (var exp in per.GetExports)
+                        {
+                            txtDllToInj.Text += string.Format("Name: {0}{1}Address: 0x{2}{1}", exp.Name, Environment.NewLine,
+                                exp.Address);
+                        }
+
+                        FileToInject = ofd.FileName;
+                    }
+                    else
+                    {
+
+                        if (MessageBox.Show("No exports could be located within the selected PE file to inject\r\n\r\nAre you really sure you wish to continue loading this PE?", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            FileToInject = ofd.FileName;                         
+                        }
+                    }
+                }
             }
         }
     }

@@ -34,6 +34,9 @@ namespace Engine.Extensions
 
     public static class QuickExt
     {
+        static Logger log = new Logger(LoggerType.Console_File, "Extensions");
+
+
         public static string GetHash(byte[] toGetHashFrom, HashType hType)
         {
             byte[] hashed = null;
@@ -67,6 +70,18 @@ namespace Engine.Extensions
             }
 
             return hashedHex;
+        }
+
+        public static bool ParseFromString(this string toParseFrom)
+        {
+            if (toParseFrom == "1" | toParseFrom.ToLower() == "true")
+                return true;
+            if (toParseFrom == "0" | toParseFrom.ToLower() == "false")
+                return false;
+
+            log.Log(LogType.Warning, "Parsed string is not a valid string: {0}{1}Only valid is: 1 or TRUE, 0 or FALSE",
+                toParseFrom, Environment.NewLine);
+            return false;
         }
     }
 }
