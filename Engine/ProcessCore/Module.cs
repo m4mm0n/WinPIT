@@ -12,7 +12,6 @@ namespace Engine.ProcessCore
         public string DllName;
 
         private Dictionary<string, IntPtr> locatedExports;
-        private bool isLoggerStarted = false;
         private Logger log = new Logger(LoggerType.Console_File, "ProcessCore.Module");
 
         public Module(string dllToLocate)

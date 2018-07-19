@@ -27,6 +27,9 @@ namespace THANOS
         private Core proc;
         private Logger log;
         private string FileToInject;
+        private Module modToInject;
+        private IInjector curInjector;
+        private bool hasExports;
 
         public frmInjection(Core core)
         {
@@ -73,55 +76,14 @@ namespace THANOS
                     Helper.IsProcessUWP(proc.ProcessId) ? "Yes" : "No", proc.ProcessPriority);
 
                 txtAnalysis.Text = basicInfo + Environment.NewLine + architecture + Environment.NewLine + mods;
-
-                //metroTabControl1.SelectedIndex = 0;
-                //var yx = proc.LoadedModules;
-                //foreach (ProcessModule pm in yx)
-                //{
-                //    txtAnalysis.Text += pm.ModuleName + Environment.NewLine;
-                //}
-
-                //var xfile = new PeFile(proc.ReadBytes(proc.BaseAddress, proc.SizeOfProcess));
-                //if(xfile.ImportedFunctions != null)
-                //    foreach (var imp in xfile.ImportedFunctions)
-                //    {
-                //        txtAnalysis.Text += imp.Name + Environment.NewLine;
-                //    }
-                //var expImp = new ImportExportReader(proc);
-
-                //var exportz = expImp.Exports;
-                //if (exportz.Count > 0)
-                //{
-                //    txtAnalysis.Text += Environment.NewLine +
-                //                        string.Format("FOUND {0} EXPORTS:", exportz.Count) + Environment.NewLine;
-
-                //    foreach (var exp in exportz)
-                //    {
-                //        txtAnalysis.Text += exp.Key + " => 0x" + (Environment.Is64BitProcess
-                //                                ? exp.Value.ToInt64().ToString("X16")
-                //                                : exp.Value.ToInt32().ToString("X8")) + Environment.NewLine;
-                //    }
-                //}
-
-                //var importz = expImp.Imports;
-
-                //if (importz.ToArray().Length > 0)
-                //{
-                //    txtAnalysis.Text += Environment.NewLine +
-                //                        string.Format("FOUND {0} IMPORTS:", importz.ToArray().Length) + Environment.NewLine;
-                //    foreach (var imp in importz)
-                //    {
-                //        txtAnalysis.Text += imp;// + " => 0x" + (Environment.Is64BitProcess
-                //                                //? imp.Value.ToInt64().ToString("X16")
-                //                                //: imp.Value.ToInt32().ToString("X8")) + Environment.NewLine;
-                //    }
-                //}
             }
             catch (Exception ex)
             {
                 log.Log(ex, "An error occured loading the information about the process: {0}",
                     Marshal.GetLastWin32Error().ToString("X"));
             }
+
+            metroTabControl1.SelectTab(metroTabPage1);
         }
 
         delegate void LoadInjectionsDelegate();
@@ -149,6 +111,8 @@ namespace THANOS
                 var x = Injectors.First(t => t.SelfFileName == cbMethods.Items[cbMethods.SelectedIndex].ToString());
                 txtInjInfo.Text = string.Format("About: {0}{0}{1}{0}{0} Unique ID: {0}{2}{0}", Environment.NewLine, x.About,
                     x.UniqueId);
+                curInjector =
+                    Injectors.First(a => a.SelfFileName == cbMethods.Items[cbMethods.SelectedIndex].ToString());
             }
             else
             {
@@ -167,11 +131,13 @@ namespace THANOS
                 if (File.Exists(ofd.FileName))
                 {
                     PEReader per = new PEReader(ofd.FileName);
-                    txtDllToInj.Text = "File: " + Path.GetFileName(ofd.FileName) + Environment.NewLine +
-                                      Environment.NewLine + "EXPORTS:" + Environment.NewLine + Environment.NewLine;
+                    txtDllToInj.Text = "File: " + Path.GetFileName(ofd.FileName);
 
                     if(per.GetExports != null)
                     {
+                        txtDllToInj.Text += Environment.NewLine +
+                                            Environment.NewLine + "EXPORTS:" + Environment.NewLine +
+                                            Environment.NewLine;
                         foreach (var exp in per.GetExports)
                         {
                             txtDllToInj.Text += string.Format("Name: {0}{1}Address: 0x{2}{1}", exp.Name, Environment.NewLine,
@@ -179,17 +145,169 @@ namespace THANOS
                         }
 
                         FileToInject = ofd.FileName;
+                        try
+                        {
+                            modToInject = new Module(FileToInject);
+                            btnInject.Enabled = true;
+
+                            try
+                            {
+                                foreach (var pex in per.GetExports)
+                                {
+                                    var tmp = modToInject.GetExportAddress(pex.Name);
+                                    cbExports.Items.Add(pex.Name);
+                                }
+
+                                hasExports = true;
+                            }
+                            catch (Exception emm)
+                            {
+                                log.Log(emm, "Failed to load export from Module...");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Log(ex, "Failed to initiate Module...");
+                        }
                     }
                     else
                     {
-
                         if (MessageBox.Show("No exports could be located within the selected PE file to inject\r\n\r\nAre you really sure you wish to continue loading this PE?", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         {
-                            FileToInject = ofd.FileName;                         
+                            FileToInject = ofd.FileName;
+                            try
+                            {
+                                modToInject = new Module(FileToInject);
+                                btnInject.Enabled = true;
+                                hasExports = false;
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Log(ex, "Failed to initiate Module...");
+                            }
                         }
                     }
                 }
             }
         }
+
+        private BackgroundWorker injectedWorker;
+
+        private void btnInject_Click(object sender, EventArgs e)
+        {
+            injectedWorker = new BackgroundWorker()
+            {
+                WorkerReportsProgress = true,
+                WorkerSupportsCancellation = true
+            };
+
+            injectedWorker.DoWork += InjectedWorker_DoWork;
+            injectedWorker.ProgressChanged += InjectedWorker_ProgressChanged;
+            injectedWorker.RunWorkerCompleted += InjectedWorker_RunWorkerCompleted;
+
+            injectedWorker.RunWorkerAsync();
+        }
+
+        delegate void InjectedWorker_RunWorkerCompleted_Delegate(object a, RunWorkerCompletedEventArgs b);
+
+        private void InjectedWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (this.InvokeRequired)
+                this.Invoke(new InjectedWorker_RunWorkerCompleted_Delegate(InjectedWorker_RunWorkerCompleted), sender,
+                    e);
+            else
+            {
+                txtInjLog.Text += "Module is no longer loaded..." + Environment.NewLine;
+                log.Log(LogType.Warning, "Module {0} is no longer loaded inside of {1}", modToInject.DllName, proc.ProcessName);
+
+                injected = IntPtr.Zero;
+            }
+        }
+
+        delegate void InjectedWorked_ProgressChanged_Delegate(object a, ProgressChangedEventArgs b);
+
+        private void InjectedWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            if (this.InvokeRequired)
+                this.Invoke(new InjectedWorked_ProgressChanged_Delegate(InjectedWorker_ProgressChanged), sender, e);
+            else
+            {
+                bool isAlive = false;
+                Process pr = Process.GetProcessById(proc.ProcessId);
+                foreach (ProcessModule pm in pr.Modules)
+                {
+                    if (pm.FileName == Path.GetFileName(FileToInject))
+                    {
+                        isAlive = true;
+                        break;
+                    }
+                }
+
+                while (isAlive)
+                {
+                    bool tmpAlive = false;
+                    if (bSpin.Value < 100)
+                        bSpin.Value++;
+                    else
+                    {
+                        bSpin.Backwards = !bSpin.Backwards;
+                        bSpin.Value = 0;
+                    }
+
+                    pr = Process.GetProcessById(proc.ProcessId);
+                    foreach (ProcessModule pm in pr.Modules)
+                    {
+                        if (pm.FileName == Path.GetFileName(FileToInject))
+                        {
+                            tmpAlive = true;
+                            break;
+                        }
+                    }
+
+                    isAlive = tmpAlive;
+                }
+            }
+        }
+
+        delegate void InjectedWorker_DoWork_Delegate(object a, DoWorkEventArgs b);
+
+        private IntPtr injected;
+
+        private void InjectedWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (this.InvokeRequired)
+                this.Invoke(new InjectedWorker_DoWork_Delegate(InjectedWorker_DoWork), sender, e);
+            else
+            {
+                injected = curInjector.Inject(proc, FileToInject);
+                if (injected != IntPtr.Zero)
+                {
+                    txtInjLog.Text +=
+                        Path.GetFileName(FileToInject) + " succesfully injected into process: 0x" + (proc.Is64bit
+                            ? injected.ToInt64().ToString("X16")
+                            : injected.ToInt32().ToString("X8")) + Environment.NewLine;
+                    log.Log(LogType.Success, "{0} succesfully injected into {1} (0x{2})",
+                        Path.GetFileName(FileToInject),
+                        proc.FileName,
+                        proc.Is64bit ? injected.ToInt64().ToString("X16") : injected.ToInt32().ToString("X8"));
+
+
+                    btnExport.Enabled = hasExports;
+                    btnInject.Enabled = false;
+                }
+                else
+                {
+                    txtInjLog.Text += "Failed to inject module into process (See log for details!)" + Environment.NewLine;
+                    log.Log(LogType.Error, "Injection failed: {0}", Marshal.GetLastWin32Error().ToString("X"));
+                }
+            }
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
     }
 }

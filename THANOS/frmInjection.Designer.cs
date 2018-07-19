@@ -32,19 +32,20 @@
             this.metroTabPage1 = new MetroFramework.Controls.MetroTabPage();
             this.txtAnalysis = new MetroFramework.Controls.MetroTextBox();
             this.metroTabPage2 = new MetroFramework.Controls.MetroTabPage();
+            this.txtInjInfo = new MetroFramework.Controls.MetroTextBox();
             this.cbMethods = new MetroFramework.Controls.MetroComboBox();
             this.metroTabPage3 = new MetroFramework.Controls.MetroTabPage();
-            this.txtInjInfo = new MetroFramework.Controls.MetroTextBox();
-            this.metroTabPage4 = new MetroFramework.Controls.MetroTabPage();
-            this.metroButton1 = new MetroFramework.Controls.MetroButton();
             this.txtDllToInj = new MetroFramework.Controls.MetroTextBox();
+            this.metroButton1 = new MetroFramework.Controls.MetroButton();
+            this.metroTabPage4 = new MetroFramework.Controls.MetroTabPage();
             this.metroTabControl2 = new MetroFramework.Controls.MetroTabControl();
             this.metroTabPage5 = new MetroFramework.Controls.MetroTabPage();
+            this.btnExport = new MetroFramework.Controls.MetroButton();
+            this.cbExports = new MetroFramework.Controls.MetroComboBox();
+            this.btnInject = new MetroFramework.Controls.MetroButton();
             this.metroTabPage6 = new MetroFramework.Controls.MetroTabPage();
             this.txtInjLog = new MetroFramework.Controls.MetroTextBox();
-            this.btnInject = new MetroFramework.Controls.MetroButton();
-            this.cbExports = new MetroFramework.Controls.MetroComboBox();
-            this.btnExport = new MetroFramework.Controls.MetroButton();
+            this.bSpin = new MetroFramework.Controls.MetroProgressSpinner();
             this.metroTabControl1.SuspendLayout();
             this.metroTabPage1.SuspendLayout();
             this.metroTabPage2.SuspendLayout();
@@ -58,16 +59,17 @@
             // metroTabControl1
             // 
             this.metroTabControl1.Controls.Add(this.metroTabPage1);
+            this.metroTabControl1.Controls.Add(this.metroTabPage4);
             this.metroTabControl1.Controls.Add(this.metroTabPage2);
             this.metroTabControl1.Controls.Add(this.metroTabPage3);
-            this.metroTabControl1.Controls.Add(this.metroTabPage4);
             this.metroTabControl1.Location = new System.Drawing.Point(23, 63);
             this.metroTabControl1.Name = "metroTabControl1";
-            this.metroTabControl1.SelectedIndex = 3;
+            this.metroTabControl1.SelectedIndex = 0;
             this.metroTabControl1.Size = new System.Drawing.Size(508, 185);
             this.metroTabControl1.Style = MetroFramework.MetroColorStyle.Lime;
             this.metroTabControl1.TabIndex = 0;
             this.metroTabControl1.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.metroTabControl1.UseStyleColors = true;
             // 
             // metroTabPage1
             // 
@@ -107,6 +109,18 @@
             this.metroTabPage2.Theme = MetroFramework.MetroThemeStyle.Dark;
             this.metroTabPage2.VerticalScrollbarBarColor = true;
             // 
+            // txtInjInfo
+            // 
+            this.txtInjInfo.Location = new System.Drawing.Point(3, 38);
+            this.txtInjInfo.Multiline = true;
+            this.txtInjInfo.Name = "txtInjInfo";
+            this.txtInjInfo.ReadOnly = true;
+            this.txtInjInfo.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtInjInfo.Size = new System.Drawing.Size(494, 105);
+            this.txtInjInfo.Style = MetroFramework.MetroColorStyle.Lime;
+            this.txtInjInfo.TabIndex = 3;
+            this.txtInjInfo.Theme = MetroFramework.MetroThemeStyle.Dark;
+            // 
             // cbMethods
             // 
             this.cbMethods.FormattingEnabled = true;
@@ -132,40 +146,6 @@
             this.metroTabPage3.Theme = MetroFramework.MetroThemeStyle.Dark;
             this.metroTabPage3.VerticalScrollbarBarColor = true;
             // 
-            // txtInjInfo
-            // 
-            this.txtInjInfo.Location = new System.Drawing.Point(3, 38);
-            this.txtInjInfo.Multiline = true;
-            this.txtInjInfo.Name = "txtInjInfo";
-            this.txtInjInfo.ReadOnly = true;
-            this.txtInjInfo.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtInjInfo.Size = new System.Drawing.Size(494, 105);
-            this.txtInjInfo.Style = MetroFramework.MetroColorStyle.Lime;
-            this.txtInjInfo.TabIndex = 3;
-            this.txtInjInfo.Theme = MetroFramework.MetroThemeStyle.Dark;
-            // 
-            // metroTabPage4
-            // 
-            this.metroTabPage4.Controls.Add(this.metroTabControl2);
-            this.metroTabPage4.HorizontalScrollbarBarColor = true;
-            this.metroTabPage4.Location = new System.Drawing.Point(4, 35);
-            this.metroTabPage4.Name = "metroTabPage4";
-            this.metroTabPage4.Size = new System.Drawing.Size(500, 146);
-            this.metroTabPage4.TabIndex = 3;
-            this.metroTabPage4.Text = "Injection";
-            this.metroTabPage4.Theme = MetroFramework.MetroThemeStyle.Dark;
-            this.metroTabPage4.VerticalScrollbarBarColor = true;
-            // 
-            // metroButton1
-            // 
-            this.metroButton1.Location = new System.Drawing.Point(3, 3);
-            this.metroButton1.Name = "metroButton1";
-            this.metroButton1.Size = new System.Drawing.Size(116, 23);
-            this.metroButton1.TabIndex = 2;
-            this.metroButton1.Text = ".browse.";
-            this.metroButton1.Theme = MetroFramework.MetroThemeStyle.Dark;
-            this.metroButton1.Click += new System.EventHandler(this.metroButton1_Click);
-            // 
             // txtDllToInj
             // 
             this.txtDllToInj.Location = new System.Drawing.Point(3, 32);
@@ -179,13 +159,35 @@
             this.txtDllToInj.Theme = MetroFramework.MetroThemeStyle.Dark;
             this.txtDllToInj.UseStyleColors = true;
             // 
+            // metroButton1
+            // 
+            this.metroButton1.Location = new System.Drawing.Point(3, 3);
+            this.metroButton1.Name = "metroButton1";
+            this.metroButton1.Size = new System.Drawing.Size(116, 23);
+            this.metroButton1.TabIndex = 2;
+            this.metroButton1.Text = ".browse.";
+            this.metroButton1.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.metroButton1.Click += new System.EventHandler(this.metroButton1_Click);
+            // 
+            // metroTabPage4
+            // 
+            this.metroTabPage4.Controls.Add(this.metroTabControl2);
+            this.metroTabPage4.HorizontalScrollbarBarColor = true;
+            this.metroTabPage4.Location = new System.Drawing.Point(4, 35);
+            this.metroTabPage4.Name = "metroTabPage4";
+            this.metroTabPage4.Size = new System.Drawing.Size(500, 146);
+            this.metroTabPage4.TabIndex = 3;
+            this.metroTabPage4.Text = "Injection";
+            this.metroTabPage4.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.metroTabPage4.VerticalScrollbarBarColor = true;
+            // 
             // metroTabControl2
             // 
             this.metroTabControl2.Controls.Add(this.metroTabPage5);
             this.metroTabControl2.Controls.Add(this.metroTabPage6);
             this.metroTabControl2.Location = new System.Drawing.Point(3, 3);
             this.metroTabControl2.Name = "metroTabControl2";
-            this.metroTabControl2.SelectedIndex = 0;
+            this.metroTabControl2.SelectedIndex = 1;
             this.metroTabControl2.Size = new System.Drawing.Size(494, 140);
             this.metroTabControl2.Style = MetroFramework.MetroColorStyle.Yellow;
             this.metroTabControl2.TabIndex = 2;
@@ -207,8 +209,41 @@
             this.metroTabPage5.UseVisualStyleBackColor = true;
             this.metroTabPage5.VerticalScrollbarBarColor = true;
             // 
+            // btnExport
+            // 
+            this.btnExport.Enabled = false;
+            this.btnExport.Location = new System.Drawing.Point(135, 38);
+            this.btnExport.Name = "btnExport";
+            this.btnExport.Size = new System.Drawing.Size(348, 29);
+            this.btnExport.TabIndex = 4;
+            this.btnExport.Text = ".call export.";
+            this.btnExport.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
+            // 
+            // cbExports
+            // 
+            this.cbExports.FormattingEnabled = true;
+            this.cbExports.ItemHeight = 23;
+            this.cbExports.Location = new System.Drawing.Point(135, 3);
+            this.cbExports.Name = "cbExports";
+            this.cbExports.Size = new System.Drawing.Size(348, 29);
+            this.cbExports.TabIndex = 3;
+            this.cbExports.Theme = MetroFramework.MetroThemeStyle.Dark;
+            // 
+            // btnInject
+            // 
+            this.btnInject.Enabled = false;
+            this.btnInject.Location = new System.Drawing.Point(3, 3);
+            this.btnInject.Name = "btnInject";
+            this.btnInject.Size = new System.Drawing.Size(126, 29);
+            this.btnInject.TabIndex = 2;
+            this.btnInject.Text = ".inject.";
+            this.btnInject.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.btnInject.Click += new System.EventHandler(this.btnInject_Click);
+            // 
             // metroTabPage6
             // 
+            this.metroTabPage6.Controls.Add(this.bSpin);
             this.metroTabPage6.Controls.Add(this.txtInjLog);
             this.metroTabPage6.HorizontalScrollbarBarColor = true;
             this.metroTabPage6.Location = new System.Drawing.Point(4, 35);
@@ -234,33 +269,16 @@
             this.txtInjLog.Theme = MetroFramework.MetroThemeStyle.Dark;
             this.txtInjLog.UseStyleColors = true;
             // 
-            // btnInject
+            // bSpin
             // 
-            this.btnInject.Location = new System.Drawing.Point(3, 3);
-            this.btnInject.Name = "btnInject";
-            this.btnInject.Size = new System.Drawing.Size(126, 29);
-            this.btnInject.TabIndex = 2;
-            this.btnInject.Text = ".inject.";
-            this.btnInject.Theme = MetroFramework.MetroThemeStyle.Dark;
-            // 
-            // cbExports
-            // 
-            this.cbExports.FormattingEnabled = true;
-            this.cbExports.ItemHeight = 23;
-            this.cbExports.Location = new System.Drawing.Point(135, 3);
-            this.cbExports.Name = "cbExports";
-            this.cbExports.Size = new System.Drawing.Size(348, 29);
-            this.cbExports.TabIndex = 3;
-            this.cbExports.Theme = MetroFramework.MetroThemeStyle.Dark;
-            // 
-            // btnExport
-            // 
-            this.btnExport.Location = new System.Drawing.Point(135, 38);
-            this.btnExport.Name = "btnExport";
-            this.btnExport.Size = new System.Drawing.Size(348, 29);
-            this.btnExport.TabIndex = 4;
-            this.btnExport.Text = ".call export.";
-            this.btnExport.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.bSpin.Location = new System.Drawing.Point(427, 5);
+            this.bSpin.Maximum = 100;
+            this.bSpin.Name = "bSpin";
+            this.bSpin.Size = new System.Drawing.Size(30, 28);
+            this.bSpin.Style = MetroFramework.MetroColorStyle.Orange;
+            this.bSpin.TabIndex = 4;
+            this.bSpin.Theme = MetroFramework.MetroThemeStyle.Dark;
+            this.bSpin.Value = 50;
             // 
             // frmInjection
             // 
@@ -305,5 +323,6 @@
         private MetroFramework.Controls.MetroComboBox cbExports;
         private MetroFramework.Controls.MetroButton btnInject;
         private MetroFramework.Controls.MetroButton btnExport;
+        private MetroFramework.Controls.MetroProgressSpinner bSpin;
     }
 }
