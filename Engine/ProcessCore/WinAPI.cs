@@ -129,6 +129,36 @@ namespace Engine.ProcessCore
             }
         }
 
+        public static IMAGE_DATA_DIRECTORY* GET_HEADER_DIRECTORY(IMAGE_NT_HEADERS64* ntHeaders, uint index)
+        {
+            return (IMAGE_DATA_DIRECTORY*) (ntHeaders->OptionalHeader.DataDirectory[index]);
+        }
+
+        public static IMAGE_DATA_DIRECTORY* GET_HEADER_DIRECTORY(IMAGE_NT_HEADERS32 ntHeaders, uint index)
+        {
+            return (IMAGE_DATA_DIRECTORY*) (ntHeaders.OptionalHeader.DataDirectory[index]);
+        }
+
+        public static ushort GetRelocationData(void* baseRelocation, int index) =>
+            *(ushort*)((long)baseRelocation + Marshal.SizeOf<IMAGE_BASE_RELOCATION>() + sizeof(ushort) * index);
+
+        public static IMAGE_SECTION_HEADER* GetFirstSection(ulong localImage, IMAGE_DOS_HEADER dosHeader) =>
+            (IMAGE_SECTION_HEADER*) (localImage + (uint) dosHeader.e_lfanew /*START OF NTHEADER*/ +
+                                     (uint) Marshal.SizeOf<IMAGE_NT_HEADERS64>());
+
+        public static void GetImageHeaders(byte[] rawImage, out IMAGE_DOS_HEADER dosHeader, out IMAGE_FILE_HEADER fileHeader, out IMAGE_OPTIONAL_HEADER64 optionalHeader, out IMAGE_NT_HEADERS64* ntHeaders)
+        {
+            fixed (byte* imagePointer = &rawImage[0])
+            {
+                dosHeader = *(IMAGE_DOS_HEADER*)imagePointer;
+                IMAGE_NT_HEADERS64* ntHeader = (IMAGE_NT_HEADERS64*)(imagePointer + dosHeader.e_lfanew);
+                ntHeaders = ntHeader;
+                fileHeader = ntHeader->FileHeader;
+                optionalHeader = ntHeader->OptionalHeader;
+            }
+        }
+
+
         #region Natives
 
         #region psapi.dll
@@ -182,7 +212,8 @@ namespace Engine.ProcessCore
             MemoryProtection Win32Protect);
 
         [DllImport(ntdll, SetLastError = true)]
-        public static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, void* processInformation, int processInformationLength, IntPtr returnLength);
+        public static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
+            void* processInformation, int processInformationLength, IntPtr returnLength);
 
         [DllImport(ntdll, SetLastError = true)]
         public static extern uint NtUnmapViewOfSection(IntPtr ProcessHandle, ulong BaseAddress);
@@ -207,6 +238,15 @@ namespace Engine.ProcessCore
         #endregion
 
         #region kernel32.dll
+
+        [DllImport(kernel32, CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr LoadLibraryExA(string lpLibFileName, IntPtr hFile, LoadLibraryFlags dwFlags);
+
+        [DllImport(kernel32, CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr LoadLibrary(string lpFileName);
+
+        [DllImport(kernel32, CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern IntPtr GetCurrentProcess();
 
         [DllImport(kernel32, CallingConvention = CallingConvention.Winapi)]
         public static extern bool IsWow64Process(IntPtr hSourceProcessHandle, out bool isWow64);
@@ -488,6 +528,144 @@ namespace Engine.ProcessCore
         #endregion
 
         #region Structures
+
+        #region LoadLibraryFlags
+
+        public enum LoadLibraryFlags:uint
+        {
+            DONT_RESOLVE_DLL_REFERENCES =
+                0x00000001,
+            LOAD_IGNORE_CODE_AUTHZ_LEVEL=
+                0x00000010,
+            LOAD_LIBRARY_AS_DATAFILE=
+                0x00000002,
+            LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE=
+                0x00000040,
+            LOAD_LIBRARY_AS_IMAGE_RESOURCE=
+                0x00000020,
+            LOAD_LIBRARY_SEARCH_APPLICATION_DIR =
+                0x00000200,
+            LOAD_LIBRARY_SEARCH_DEFAULT_DIRS =
+                0x00001000,
+            LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR =
+                0x00000100,
+            LOAD_LIBRARY_SEARCH_SYSTEM32 =
+                0x00000800,
+            LOAD_LIBRARY_SEARCH_USER_DIRS =
+                0x00000400,
+            LOAD_WITH_ALTERED_SEARCH_PATH =
+                0x00000008
+        }
+
+            #endregion
+
+        #region PROCESS_BASIC_INFORMATION
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct PROCESS_BASIC_INFORMATION
+        {
+            public ulong ExitStatus;
+            public ulong PebBaseAddress;
+            public ulong AffinityMask;
+            public ulong BasePriority;
+            public ulong UniqueProcessId;
+            public ulong InheritedFromUniqueProcessId;
+
+            public int Size
+            {
+                get { return Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(); }
+            }
+        }
+
+            #endregion
+
+        #region _PEB
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct _PEB
+        {
+            public fixed byte Reserved1[2];
+            public byte BeingDebugged;
+            public fixed byte Reserved2[1];
+            public fixed byte Reserved3[2 * sizeof(ulong)];
+            public ulong Ldr;
+        }
+
+            #endregion
+
+        #region _PEB_LDR_DATA
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct _PEB_LDR_DATA
+        {
+            public uint Length;
+            public byte Initialized;
+            public ulong SsHandle;
+            public _LIST_ENTRY InLoadOrderModuleList;
+            public _LIST_ENTRY InMemoryOrderModuleList;
+            public _LIST_ENTRY InInitializationOrderModuleList;
+            public ulong EntryInProgress;
+        }
+
+            #endregion
+
+        #region _LDR_DATA_TABLE_ENTRY
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct _LDR_DATA_TABLE_ENTRY
+        {
+            public _LIST_ENTRY InLoadOrderLinks;
+            public _LIST_ENTRY InMemoryOrderLinks;
+            public _LIST_ENTRY InInitializationOrderLinks;
+            public ulong DllBase;
+            public ulong EntryPoint;
+            public ulong SizeOfImage;
+            public UNICODE_STRING FullDllName;
+            public UNICODE_STRING BaseDllName;
+            public uint Flags;
+            public ushort LoadCount;
+            public ushort TlsIndex;
+            public ulong Reserved4;
+            public ulong CheckSum;
+            public uint TimeDateStamp;
+            public ulong EntryPointActivationContext;
+            public ulong PatchInformation;
+            public _LIST_ENTRY ForwarderLinks;
+            public _LIST_ENTRY ServiceTagLinks;
+            public _LIST_ENTRY StaticLinks;
+        }
+
+        #region _LIST_ENTRY
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct _LIST_ENTRY
+        {
+            public ulong Flink;
+            public ulong Blink;
+        }
+
+            #endregion
+
+        #endregion
+
+        #region UNICODE_STRING
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct UNICODE_STRING
+        {
+            public ushort Length;
+            public ushort MaximumLength;
+            public ulong Buffer;
+
+            public UNICODE_STRING(string s)
+            {
+                Length = (ushort)(s.Length * 2);
+                MaximumLength = (ushort)(Length + 2);
+                Buffer = 0;
+            }
+        }
+
+            #endregion
 
         #region NtModuleInfo
 

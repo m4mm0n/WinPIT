@@ -10,6 +10,7 @@ namespace Engine.ProcessCore
     {
         public IntPtr hModule;
         public string DllName;
+        public byte[] DllBytes;
 
         private Dictionary<string, IntPtr> locatedExports;
         private Logger log = new Logger(LoggerType.Console_File, "ProcessCore.Module");
@@ -21,6 +22,7 @@ namespace Engine.ProcessCore
 
             if (File.Exists(dllToLocate))
             {
+                DllBytes = File.ReadAllBytes(dllToLocate);
                 var tmp = WinAPI.GetModuleHandleA(dllToLocate);
                 if (tmp != IntPtr.Zero)
                     LoadInternal(tmp);

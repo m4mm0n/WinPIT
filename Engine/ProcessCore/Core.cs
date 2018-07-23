@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -36,16 +37,19 @@ namespace Engine.ProcessCore
 
         public void SetDebugToken()
         {
+            log.Debug("SetDebugToken");
             Tokenizer.SetProcessDebugToken(procId);
         }
 
         public void ElevateSelf()
         {
+            log.Debug("ElevateSelf");
             Tokenizer.ImpersonateSystem();
         }
 
         public void ElevateProcess()
         {
+            log.Debug("ElevateProcess");
             Tokenizer.ElevateProcessToSystem(procId);
         }
 
@@ -53,7 +57,6 @@ namespace Engine.ProcessCore
         { }
         public Core(int processId)
         {
-            //Logger.StartLogger(Environment.UserInteractive ? LoggerType.Console : LoggerType.File, "ProcessCore.Core");
             log = new Logger(LoggerType.Console_File, "ProcessCore.Core");
             log.Log("[+] Initiating Core on process ID: {0}", processId.ToString("X"));
 
@@ -75,6 +78,8 @@ namespace Engine.ProcessCore
 
         public IntPtr GetLoadLibraryPtr()
         {
+            log.Debug("GetLoadLibraryPtr");
+
             var a = WinAPI.GetModuleHandleA("kernel32.dll");
             if (a != IntPtr.Zero)
             {
@@ -103,6 +108,8 @@ namespace Engine.ProcessCore
 
         public bool WriteString(string toWrite, IntPtr addrToWriteTo, bool Unicode = true)
         {
+            log.Debug("WriteString");
+
             var tmpBytes = (Unicode ? Encoding.Unicode.GetBytes(toWrite) : Encoding.ASCII.GetBytes(toWrite));
             uint bytesWritten = 0;
             if (WinAPI.WriteProcessMemory(hProcess, addrToWriteTo, tmpBytes, tmpBytes.Length, out bytesWritten))
@@ -131,9 +138,10 @@ namespace Engine.ProcessCore
 
             return false;
         }
-
         public bool WriteBytes(byte[] toWrite, IntPtr addrToWriteTo)
         {
+            log.Debug("WriteBytes");
+
             uint bytesWritten = 0;
             if(WinAPI.WriteProcessMemory(hProcess, addrToWriteTo, toWrite, toWrite.Length, out bytesWritten))
                 if (bytesWritten == toWrite.Length)
@@ -161,9 +169,10 @@ namespace Engine.ProcessCore
 
             return false;
         }
-
         public byte[] ReadBytes(IntPtr addrToReadFrom, int size)
         {
+            log.Debug("ReadBytes");
+
             uint bytesRead = 0;
             byte[] bytes = new byte[size];
             if(WinAPI.ReadProcessMemory(hProcess, addrToReadFrom, bytes, size, out bytesRead))
@@ -194,12 +203,85 @@ namespace Engine.ProcessCore
 
             return null;
         }
+
+        public T Read<T>(IntPtr addrToReadFrom) where T : struct
+        {
+            log.Debug("Read (struct)");
+
+            var buf = ReadBytes(addrToReadFrom, Unsafe.SizeOf<T>());
+            if (buf != null && buf.Length > 0)
+            {
+                log.Log(LogType.Success, "Read from 0x{0} into a structure as specified - completed...",
+                    (Is64bit ? addrToReadFrom.ToInt64().ToString("X16") : addrToReadFrom.ToInt32().ToString("X8")));
+                return Exts.GetStructure<T>(buf);
+            }
+            else
+            {
+                log.Log(LogType.Failure, "Failed to read from 0x{0} into a structure as specified: {1}",
+                    (Is64bit ? addrToReadFrom.ToInt64().ToString("X16") : addrToReadFrom.ToInt32().ToString("X8")),
+                    Marshal.GetLastWin32Error().ToString("X"));
+                return new T();
+            }
+        }
+        public void Write<T>(T value, IntPtr memoryPointer) where T : struct
+        {
+            log.Debug("Write (struct)");
+
+            var buf = Exts.GetBytes(value);
+            if (buf != null && buf.Length > 0)
+            {
+                try
+                {
+                    if (WriteBytes(buf, memoryPointer))
+                        log.Log(LogType.Success, "Wrote {0} from structure as specified...",
+                            Exts.BytesToReadableValue(buf.Length));
+                    else
+                        log.Log(LogType.Failure, "Failed to write bytes to memory: {0}",
+                            Marshal.GetLastWin32Error().ToString("X"));
+                }
+                catch (Exception ex)
+                {
+                    log.Log(ex, "Failed on writing structure to memory...");
+                }
+            }
+            else
+                log.Log(LogType.Failure, "Failed to return an array of bytes of the given structure: {0}",
+                    Marshal.GetLastWin32Error().ToString("X"));
+        }
+
+        public ulong GetPebAddress()
+        {
+            log.Debug("GetPebAddress");
+
+            unsafe
+            {
+                WinAPI.PROCESS_BASIC_INFORMATION pbi = new WinAPI.PROCESS_BASIC_INFORMATION();
+                WinAPI.NtQueryInformationProcess(hProcess, 0, &pbi, pbi.Size, IntPtr.Zero);
+
+                return pbi.PebBaseAddress;
+            }
+        }
+        public WinAPI._PEB_LDR_DATA GetLoaderData()
+        {
+            var peb = Read<WinAPI._PEB>((IntPtr)GetPebAddress());
+            return Read<WinAPI._PEB_LDR_DATA>((IntPtr)peb.Ldr);
+        }
+        public void WriteLoaderData(WinAPI._PEB_LDR_DATA ldrData)
+        {
+            var peb = Read<WinAPI._PEB>((IntPtr)GetPebAddress());
+            Write(ldrData, (IntPtr)peb.Ldr);
+        }
+
         public IntPtr Allocate(int size)
         {
+            log.Debug("Allocate (+int)");
+
             return Allocate((uint) size);
         }
         public IntPtr Allocate(uint size)
         {
+            log.Debug("Allocate (+uint)");
+
             var tmp = WinAPI.VirtualAllocEx(hProcess, IntPtr.Zero, size,
                 WinAPI.AllocationType.Commit | WinAPI.AllocationType.Reserve, WinAPI.MemoryProtection.ExecuteReadWrite);
 
@@ -216,17 +298,43 @@ namespace Engine.ProcessCore
             return tmp;
         }
 
+        public IntPtr AllocateAndWriteBytes(byte[] bytesToWrite)
+        {
+            log.Debug("AllocateAndWriteBytes");
+
+            var alloc = Allocate(bytesToWrite.Length);
+            if (alloc == IntPtr.Zero)
+            {
+                log.Log(LogType.Failure, "Allocation of memory failed - aborting!");
+                return IntPtr.Zero;
+            }
+
+            if (!WriteBytes(bytesToWrite, alloc))
+            {
+                log.Log(LogType.Failure, "Writing bytes to allocated memory failed - aborting!");
+                return IntPtr.Zero;
+            }
+
+            return alloc;
+        }
+
         public IntPtr CreateThread(IntPtr startAddr)
         {
+            log.Debug("CreateThread (+1)");
+
             return CreateThread(startAddr, IntPtr.Zero);
         }
         public IntPtr CreateThread(IntPtr startAddr, IntPtr param)
         {
+            log.Debug("CreateThread (+2)");
+
             return CreateThread(IntPtr.Zero, 0, startAddr, param, 0);
         }
         public IntPtr CreateThread(IntPtr threadAttributes, uint stackSize, IntPtr startAddr, IntPtr param,
             uint creationFlags)
         {
+            log.Debug("CreateThread (+5)");
+
             int threadId = 0;
             var tmp = WinAPI.CreateRemoteThread(hProcess, threadAttributes, stackSize, startAddr, param, creationFlags,
                 out threadId);
@@ -241,6 +349,8 @@ namespace Engine.ProcessCore
 
         long ExactMemUsage()
         {
+            log.Debug("ExactMemUsage");
+
             long memsize = 0;
             PerformanceCounter pc = new PerformanceCounter("Process", "Working Set - Private", _proc.ProcessName);
             memsize = (long) (pc.NextValue() / (1024 * 1024));
@@ -250,6 +360,8 @@ namespace Engine.ProcessCore
 
         bool is64bitProc()
         {
+            log.Debug("is64bitProc");
+
             bool is64 = false;
             var m = WinAPI.IsWow64Process(hProcess, out is64);
             return is64;
@@ -257,6 +369,8 @@ namespace Engine.ProcessCore
 
         void LoadProcess(int procId)
         {
+            log.Debug("LoadProcess");
+
             try
             {
                 Tokenizer.Initiate();
@@ -285,6 +399,8 @@ namespace Engine.ProcessCore
 
         public void Dispose()
         {
+            log.Debug("Dispose");
+
             if (hProcess != IntPtr.Zero)
             {
                 if (allocatedMem.Count > 0)
