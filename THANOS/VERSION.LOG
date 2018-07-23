@@ -1,0 +1,27 @@
+﻿+ : New feature
+- : Removed feature
+* : Changed feature
+! : Important notice
+
+
+
+[V0.1.0.0 23.07.2018]
+=====================
+Injectors:
+ +Added ManualMap injection method by striek... (unstable!)
+
+Engine:
+ +Added needed features for ManualMap injection method...
+ +Added needed API calls for ManualMap injection method...
+ *Changed so mostly all methods/functions are logged in case of crash...
+
+[V0.1.0.0 17.07.2018]
+=====================
+! First runnable version concieved...
+
+[V0.1.0.0 03.07.2018]
+=====================
+* First concieved partial running version...
+
+
+(c)2018 mammon
