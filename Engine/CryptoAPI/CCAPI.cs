@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Engine.CryptoAPI
 {
@@ -11,25 +7,24 @@ namespace Engine.CryptoAPI
     {
         #region CONSTS
 
-
         // #define PRIVATEKEYBLOB		0x7
 
-        public const Int32 PRIVATEKEYBLOB = 0x7;
+        public const int PRIVATEKEYBLOB = 0x7;
 
 
         // #define AT_KEYEXCHANGE		1
 
-        public const Int32 AT_KEYEXCHANGE = 1;
+        public const int AT_KEYEXCHANGE = 1;
 
 
         // #define AT_SIGNATURE		2
 
-        public const Int32 AT_SIGNATURE = 2;
+        public const int AT_SIGNATURE = 2;
 
 
         //#define CRYPT_E_NOT_FOUND		_HRESULT_TYPEDEF_(0x80092004L)
 
-        public const Int32 CRYPT_E_NOT_FOUND = -2146885628;
+        public const int CRYPT_E_NOT_FOUND = -2146885628;
 
 
         // #define CERT_PERSONAL_STORE_NAME      L"My"
@@ -39,87 +34,84 @@ namespace Engine.CryptoAPI
 
         // #define CERT_COMPARE_ANY		0
 
-        public const Int32 CERT_COMPARE_ANY = 0;
+        public const int CERT_COMPARE_ANY = 0;
 
 
         // #define CERT_COMPARE_NAME   2
 
-        public const Int32 CERT_COMPARE_NAME = 2;
+        public const int CERT_COMPARE_NAME = 2;
 
 
         // #define CERT_INFO_SUBJECT_FLAG  7
 
-        public const Int32 CERT_INFO_SUBJECT_FLAG = 7;
+        public const int CERT_INFO_SUBJECT_FLAG = 7;
 
 
         // #define CERT_COMPARE_SHIFT        16
 
-        public const Int32 CERT_COMPARE_SHIFT = 16;
+        public const int CERT_COMPARE_SHIFT = 16;
 
 
         // #define CERT_FIND_SUBJECT_NAME    (CERT_COMPARE_NAME << CERT_COMPARE_SHIFT | CERT_INFO_SUBJECT_FLAG)
 
-        public const Int32 CERT_FIND_SUBJECT_NAME =
-
+        public const int CERT_FIND_SUBJECT_NAME =
             (CERT_COMPARE_NAME << CERT_COMPARE_SHIFT) | CERT_INFO_SUBJECT_FLAG;
 
 
         // #define CERT_FIND_ANY	(CERT_COMPARE_ANY << CERT_COMPARE_SHIFT)
 
-        public const Int32 CERT_FIND_ANY = CERT_COMPARE_ANY << CERT_COMPARE_SHIFT;
+        public const int CERT_FIND_ANY = CERT_COMPARE_ANY << CERT_COMPARE_SHIFT;
 
 
         // #define CERT_COMPARE_NAME_STR_W     8
 
-        public const Int32 CERT_COMPARE_NAME_STR_W = 8;
+        public const int CERT_COMPARE_NAME_STR_W = 8;
 
 
         // #define CERT_FIND_SUBJECT_STR_W   \
 
         //   (CERT_COMPARE_NAME_STR_W << CERT_COMPARE_SHIFT | CERT_INFO_SUBJECT_FLAG)
 
-        public const Int32 CERT_FIND_SUBJECT_STR_W =
-
+        public const int CERT_FIND_SUBJECT_STR_W =
             (CERT_COMPARE_NAME_STR_W << CERT_COMPARE_SHIFT) | CERT_INFO_SUBJECT_FLAG;
 
 
         // #define CERT_FIND_SUBJECT_STR CERT_FIND_SUBJECT_STR_W
 
-        public const Int32 CERT_FIND_SUBJECT_STR = CERT_FIND_SUBJECT_STR_W;
+        public const int CERT_FIND_SUBJECT_STR = CERT_FIND_SUBJECT_STR_W;
 
 
         // #define CERT_STORE_PROV_SYSTEM_W      ((LPCSTR) 10)
 
-        public const Int32 CERT_STORE_PROV_SYSTEM_W = 10;
+        public const int CERT_STORE_PROV_SYSTEM_W = 10;
 
 
         // #define CERT_STORE_PROV_SYSTEM        CERT_STORE_PROV_SYSTEM_W
 
-        public const Int32 CERT_STORE_PROV_SYSTEM = CERT_STORE_PROV_SYSTEM_W;
+        public const int CERT_STORE_PROV_SYSTEM = CERT_STORE_PROV_SYSTEM_W;
 
 
         // #define CERT_SYSTEM_STORE_CURRENT_USER_ID     1
 
-        public const Int32 CERT_SYSTEM_STORE_CURRENT_USER_ID = 1;
+        public const int CERT_SYSTEM_STORE_CURRENT_USER_ID = 1;
 
 
         // #define CERT_SYSTEM_STORE_LOCATION_SHIFT      16
 
-        public const Int32 CERT_SYSTEM_STORE_LOCATION_SHIFT = 16;
+        public const int CERT_SYSTEM_STORE_LOCATION_SHIFT = 16;
 
 
         // #define CERT_SYSTEM_STORE_CURRENT_USER        \
 
         //   (CERT_SYSTEM_STORE_CURRENT_USER_ID << CERT_SYSTEM_STORE_LOCATION_SHIFT)
 
-        public const Int32 CERT_SYSTEM_STORE_CURRENT_USER =
-
+        public const int CERT_SYSTEM_STORE_CURRENT_USER =
             CERT_SYSTEM_STORE_CURRENT_USER_ID << CERT_SYSTEM_STORE_LOCATION_SHIFT;
 
 
         // #define CERT_CLOSE_STORE_CHECK_FLAG       0x00000002
 
-        public const Int32 CERT_CLOSE_STORE_CHECK_FLAG = 0x00000002;
+        public const int CERT_CLOSE_STORE_CHECK_FLAG = 0x00000002;
 
 
         // #define ALG_CLASS_HASH                  (4 << 13)
@@ -130,7 +122,7 @@ namespace Engine.CryptoAPI
 
         // #define CALG_SHA1               (ALG_CLASS_HASH | ALG_TYPE_ANY | ALG_SID_SHA1)
 
-        public const Int32 CALG_SHA1 = (4 << 13) | 4;
+        public const int CALG_SHA1 = (4 << 13) | 4;
 
 
         // #define ALG_CLASS_SIGNATURE             (1 << 13)
@@ -141,97 +133,96 @@ namespace Engine.CryptoAPI
 
         // #define CALG_RSA_SIGN           (ALG_CLASS_SIGNATURE | ALG_TYPE_RSA | ALG_SID_RSA_ANY)
 
-        public const Int32 CALG_RSA_SIGN = (1 << 13) | (2 << 9);
+        public const int CALG_RSA_SIGN = (1 << 13) | (2 << 9);
 
 
         // #define PROV_RSA_FULL           1
 
-        public const Int32 PROV_RSA_FULL = 0x00000001;
+        public const int PROV_RSA_FULL = 0x00000001;
 
 
         // #define CRYPT_VERIFYCONTEXT     0xF0000000
 
-        public const Int32 CRYPT_VERIFYCONTEXT = -268435456; //No private key access required
+        public const int CRYPT_VERIFYCONTEXT = -268435456; //No private key access required
 
 
         // #define X509_ASN_ENCODING           0x00000001
 
-        public const Int32 X509_ASN_ENCODING = 0x00000001;
+        public const int X509_ASN_ENCODING = 0x00000001;
 
 
         // #define PKCS_7_ASN_ENCODING         0x00010000
 
-        public const Int32 PKCS_7_ASN_ENCODING = 0x00010000;
+        public const int PKCS_7_ASN_ENCODING = 0x00010000;
 
 
         // #define MY_TYPE       (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 
-        public const Int32 MY_TYPE = PKCS_7_ASN_ENCODING | X509_ASN_ENCODING;
+        public const int MY_TYPE = PKCS_7_ASN_ENCODING | X509_ASN_ENCODING;
 
 
         // #define HP_HASHVAL              0x0002
 
-        public const Int32 HP_HASHVAL = 0x00000002;
+        public const int HP_HASHVAL = 0x00000002;
 
 
         // #define HP_HASHSIZE             0x0004
 
-        public const Int32 HP_HASHSIZE = 0x00000004;
+        public const int HP_HASHSIZE = 0x00000004;
 
 
         // #define PUBLICKEYBLOBEX 0xA
 
-        public const Int32 PUBLICKEYBLOBEX = 0x0A;
+        public const int PUBLICKEYBLOBEX = 0x0A;
 
 
         // #define PUBLICKEYBLOB           0x6
 
-        public const Int32 PUBLICKEYBLOB = 0x06;
+        public const int PUBLICKEYBLOB = 0x06;
 
 
         // #define CUR_BLOB_VERSION 0x02
 
-        public const Int32 CUR_BLOB_VERSION = 0x02;
+        public const int CUR_BLOB_VERSION = 0x02;
 
 
         // #define CRYPT_EXPORTABLE        0x00000001
 
-        public const Int32 CRYPT_EXPORTABLE = 0x00000001;
+        public const int CRYPT_EXPORTABLE = 0x00000001;
 
 
         // #define szOID_RSA_RSA           "1.2.840.113549.1.1.1"
 
-        public const String szOID_RSA_RSA = "1.2.840.113549.1.1.1";
+        public const string szOID_RSA_RSA = "1.2.840.113549.1.1.1";
 
 
         // #define szOID_RSA_MD5           "1.2.840.113549.2.5"
 
-        public const String szOID_RSA_MD5 = "1.2.840.113549.2.5";
+        public const string szOID_RSA_MD5 = "1.2.840.113549.2.5";
 
 
         // #define szOID_RSA_MD5RSA        "1.2.840.113549.1.1.4"
 
-        public const String szOID_RSA_MD5RSA = "1.2.840.113549.1.1.4";
+        public const string szOID_RSA_MD5RSA = "1.2.840.113549.1.1.4";
 
 
         // #define szOID_OIWSEC_sha1       "1.3.14.3.2.26"
 
-        public const String szOID_OIWSEC_sha1 = "1.3.14.3.2.26";
+        public const string szOID_OIWSEC_sha1 = "1.3.14.3.2.26";
 
 
         // #define RSA_CSP_PUBLICKEYBLOB               ((LPCSTR) 19)
 
-        public const Int32 RSA_CSP_PUBLICKEYBLOB = 19;
+        public const int RSA_CSP_PUBLICKEYBLOB = 19;
 
 
         // #define X509_PUBLIC_KEY_INFO                ((LPCSTR) 8)
 
-        public const Int32 X509_PUBLIC_KEY_INFO = 8;
-
+        public const int X509_PUBLIC_KEY_INFO = 8;
 
         #endregion
-        #region STRUCTS
 
+        #region STRUCTS
 
         // typedef struct _PUBLICKEYSTRUC
 
@@ -251,15 +242,13 @@ namespace Engine.CryptoAPI
         public struct PUBLICKEYSTRUC
 
         {
+            public byte bType;
 
-            public Byte bType;
+            public byte bVersion;
 
-            public Byte bVersion;
+            public short reserved;
 
-            public Int16 reserved;
-
-            public Int32 aiKeyAlg;
-
+            public int aiKeyAlg;
         }
 
 
@@ -279,13 +268,11 @@ namespace Engine.CryptoAPI
         public struct RSAPUBKEY
 
         {
+            public int magic;
 
-            public Int32 magic;
+            public int bitlen;
 
-            public Int32 bitlen;
-
-            public Int32 pubexp;
-
+            public int pubexp;
         }
 
 
@@ -305,11 +292,9 @@ namespace Engine.CryptoAPI
         public struct CRYPTOAPI_BLOB
 
         {
+            public int cbData;
 
-            public Int32 cbData;
-
-            public Byte[] pbData;
-
+            public byte[] pbData;
         }
 
 
@@ -327,11 +312,9 @@ namespace Engine.CryptoAPI
         public struct CRYPT_ALGORITHM_IDENTIFIER
 
         {
-
-            [MarshalAs(UnmanagedType.LPStr)] public String pszObjId;
+            [MarshalAs(UnmanagedType.LPStr)] public string pszObjId;
 
             public CRYPTOAPI_BLOB Parameters;
-
         }
 
 
@@ -375,10 +358,9 @@ namespace Engine.CryptoAPI
         public struct CRYPT_SIGN_MESSAGE_PARA
 
         {
+            public int cbSize;
 
-            public Int32 cbSize;
-
-            public Int32 dwMsgEncodingType;
+            public int dwMsgEncodingType;
 
             public IntPtr pSigningCert;
 
@@ -386,26 +368,25 @@ namespace Engine.CryptoAPI
 
             public IntPtr pvHashAuxInfo;
 
-            public Int32 cMsgCert;
+            public int cMsgCert;
 
             public IntPtr rgpMsgCert;
 
-            public Int32 cMsgCrl;
+            public int cMsgCrl;
 
             public IntPtr rgpMsgCrl;
 
-            public Int32 cAuthAttr;
+            public int cAuthAttr;
 
             public IntPtr rgAuthAttr;
 
-            public Int32 cUnauthAttr;
+            public int cUnauthAttr;
 
             public IntPtr rgUnauthAttr;
 
-            public Int32 dwFlags;
+            public int dwFlags;
 
-            public Int32 dwInnerContentType;
-
+            public int dwInnerContentType;
         }
 
 
@@ -429,17 +410,15 @@ namespace Engine.CryptoAPI
         public struct CRYPT_VERIFY_MESSAGE_PARA
 
         {
+            public int cbSize;
 
-            public Int32 cbSize;
-
-            public Int32 dwMsgAndCertEncodingType;
+            public int dwMsgAndCertEncodingType;
 
             public IntPtr hCryptProv;
 
             public IntPtr pfnGetSignerCertificate;
 
             public IntPtr pvGetArg;
-
         }
 
 
@@ -459,13 +438,11 @@ namespace Engine.CryptoAPI
         public struct CRYPT_BIT_BLOB
 
         {
-
-            public Int32 cbData;
+            public int cbData;
 
             public IntPtr pbData;
 
-            public Int32 cUnusedBits;
-
+            public int cUnusedBits;
         }
 
 
@@ -483,17 +460,14 @@ namespace Engine.CryptoAPI
         public struct CERT_PUBLIC_KEY_INFO
 
         {
-
             public CRYPT_ALGORITHM_IDENTIFIER Algorithm;
 
             public CRYPT_BIT_BLOB PublicKey;
-
         }
 
-
         #endregion
-        #region FUNCTIONS (IMPORTS)
 
+        #region FUNCTIONS (IMPORTS)
 
         // HCERTSTORE WINAPI CertOpenStore(
 
@@ -511,17 +485,11 @@ namespace Engine.CryptoAPI
 
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr CertOpenStore(
-
-            Int32 lpszStoreProvider,
-
-            Int32 dwMsgAndCertEncodingType,
-
+            int lpszStoreProvider,
+            int dwMsgAndCertEncodingType,
             IntPtr hCryptProv,
-
-            Int32 dwFlags,
-
-            String pvPara
-
+            int dwFlags,
+            string pvPara
         );
 
 
@@ -535,11 +503,8 @@ namespace Engine.CryptoAPI
 
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr CertOpenSystemStore(
-
             IntPtr hprov,
-
-            String szSubsystemProtocol
-
+            string szSubsystemProtocol
         );
 
 
@@ -552,12 +517,9 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CertCloseStore(
-
+        public static extern bool CertCloseStore(
             IntPtr hCertStore,
-
-            Int32 dwFlags
-
+            int dwFlags
         );
 
 
@@ -577,17 +539,11 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool CryptAcquireContext(
-
             ref IntPtr hProv,
-
-            String pszContainer,
-
-            String pszProvider,
-
-            Int32 dwProvType,
-
-            Int32 dwFlags
-
+            string pszContainer,
+            string pszProvider,
+            int dwProvType,
+            int dwFlags
         );
 
 
@@ -607,17 +563,11 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptCreateHash(
-
             IntPtr hProv,
-
-            Int32 Algid,
-
+            int Algid,
             IntPtr hKey,
-
-            Int32 dwFlags,
-
+            int dwFlags,
             ref IntPtr phHash
-
         );
 
 
@@ -637,17 +587,11 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptGetHashParam(
-
             IntPtr hHash,
-
-            Int32 dwParam,
-
-            ref Int32 pbData,
-
-            ref Int32 pdwDataLen,
-
-            Int32 dwFlags
-
+            int dwParam,
+            ref int pbData,
+            ref int pdwDataLen,
+            int dwFlags
         );
 
 
@@ -665,15 +609,10 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptSetHashParam(
-
             IntPtr hHash,
-
-            Int32 dwParam,
-
-            Byte[] pbData,
-
-            Int32 dwFlags
-
+            int dwParam,
+            byte[] pbData,
+            int dwFlags
         );
 
 
@@ -691,15 +630,10 @@ namespace Engine.CryptoAPI
 
         [DllImport("crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool CryptImportPublicKeyInfo(
-
             IntPtr hCryptProv,
-
-            Int32 dwCertEncodingType,
-
+            int dwCertEncodingType,
             IntPtr pInfo,
-
             ref IntPtr phKey
-
         );
 
 
@@ -721,19 +655,12 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptImportKey(
-
             IntPtr hProv,
-
-            Byte[] pbData,
-
-            Int32 dwDataLen,
-
+            byte[] pbData,
+            int dwDataLen,
             IntPtr hPubKey,
-
-            Int32 dwFlags,
-
+            int dwFlags,
             ref IntPtr phKey
-
         );
 
 
@@ -755,19 +682,12 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool CryptVerifySignature(
-
             IntPtr hHash,
-
-            Byte[] pbSignature,
-
-            Int32 dwSigLen,
-
+            byte[] pbSignature,
+            int dwSigLen,
             IntPtr hPubKey,
-
-            String sDescription,
-
-            Int32 dwFlags
-
+            string sDescription,
+            int dwFlags
         );
 
 
@@ -779,9 +699,7 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptDestroyKey(
-
             IntPtr hKey
-
         );
 
 
@@ -793,9 +711,7 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptDestroyHash(
-
             IntPtr hHash
-
         );
 
 
@@ -809,11 +725,8 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptReleaseContext(
-
             IntPtr hProv,
-
-            Int32 dwFlags
-
+            int dwFlags
         );
 
 
@@ -831,15 +744,10 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptGenKey(
-
             IntPtr hProv,
-
-            Int32 Algid,
-
-            Int32 dwFlags,
-
+            int Algid,
+            int dwFlags,
             ref IntPtr phKey
-
         );
 
 
@@ -861,19 +769,12 @@ namespace Engine.CryptoAPI
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool CryptExportKey(
-
             IntPtr hKey,
-
             IntPtr hExpKey,
-
-            Int32 dwBlobType,
-
-            Int32 dwFlags,
-
-            Byte[] pbData,
-
-            ref Int32 pdwDataLen
-
+            int dwBlobType,
+            int dwFlags,
+            byte[] pbData,
+            ref int pdwDataLen
         );
 
 
@@ -895,19 +796,12 @@ namespace Engine.CryptoAPI
 
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr CertFindCertificateInStore(
-
             IntPtr hCertStore,
-
-            Int32 dwCertEncodingType,
-
-            Int32 dwFindFlags,
-
-            Int32 dwFindType,
-
-            String pvFindPara,
-
+            int dwCertEncodingType,
+            int dwFindFlags,
+            int dwFindType,
+            string pvFindPara,
             IntPtr pPrevCertContext
-
         );
 
 
@@ -918,10 +812,8 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CertFreeCertificateContext(
-
+        public static extern bool CertFreeCertificateContext(
             IntPtr pCertContext
-
         );
 
 
@@ -944,22 +836,14 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CryptSignMessage(
-
+        public static extern bool CryptSignMessage(
             ref CRYPT_SIGN_MESSAGE_PARA pSignPara,
-
-            Boolean fDetachedSignature,
-
-            Int32 cToBeSigned,
-
+            bool fDetachedSignature,
+            int cToBeSigned,
             IntPtr[] rgpbToBeSigned,
-
-            Int32[] rgcbToBeSigned,
-
-            Byte[] pbSignedBlob,
-
-            ref Int32 pcbSignedBlob
-
+            int[] rgcbToBeSigned,
+            byte[] pbSignedBlob,
+            ref int pcbSignedBlob
         );
 
 
@@ -982,22 +866,14 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CryptVerifyMessageSignature(
-
+        public static extern bool CryptVerifyMessageSignature(
             ref CRYPT_VERIFY_MESSAGE_PARA pVerifyPara,
-
-            Int32 dwSignerIndex,
-
-            Byte[] pbSignedBlob,
-
-            Int32 cbSignedBlob,
-
-            Byte[] pbDecoded,
-
-            ref Int32 pcbDecoded,
-
+            int dwSignerIndex,
+            byte[] pbSignedBlob,
+            int cbSignedBlob,
+            byte[] pbDecoded,
+            ref int pcbDecoded,
             IntPtr ppSignerCert
-
         );
 
 
@@ -1016,34 +892,22 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CryptEncodeObject(
-
-            Int32 dwCertEncodingType,
-
-            Int32 lpszStructType,
-
+        public static extern bool CryptEncodeObject(
+            int dwCertEncodingType,
+            int lpszStructType,
             ref CERT_PUBLIC_KEY_INFO pvStructInfo,
-
-            Byte[] pbEncoded,
-
-            ref Int32 pcbEncoded
-
+            byte[] pbEncoded,
+            ref int pcbEncoded
         );
 
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CryptEncodeObject(
-
-            Int32 dwCertEncodingType,
-
-            Int32 lpszStructType,
-
-            Byte[] pvStructInfo,
-
+        public static extern bool CryptEncodeObject(
+            int dwCertEncodingType,
+            int lpszStructType,
+            byte[] pvStructInfo,
             IntPtr pbEncoded,
-
-            ref Int32 pcbEncoded
-
+            ref int pcbEncoded
         );
 
 
@@ -1059,13 +923,9 @@ namespace Engine.CryptoAPI
 
         [DllImport("Crypt32.dll", SetLastError = true)]
         public static extern IntPtr CertCreateCertificateContext(
-
-            Int32 dwCertEncodingType,
-
-            Byte[] pbCertEncoded,
-
-            Int32 cbCertEncoded
-
+            int dwCertEncodingType,
+            byte[] pbCertEncoded,
+            int cbCertEncoded
         );
 
 
@@ -1086,20 +946,13 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Crypt32.dll", SetLastError = true)]
-        public static extern Boolean CryptAcquireCertificatePrivateKey(
-
+        public static extern bool CryptAcquireCertificatePrivateKey(
             IntPtr pCert,
-
-            Int32 dwFlags,
-
+            int dwFlags,
             IntPtr pvReserved,
-
             ref IntPtr phCryptProv,
-
-            ref Int32 pdwKeySpec,
-
-            ref Boolean pfCallerFreeProv
-
+            ref int pdwKeySpec,
+            ref bool pfCallerFreeProv
         );
 
 
@@ -1116,16 +969,11 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Advapi32.dll", SetLastError = true)]
-        public static extern Boolean CryptHashData(
-
+        public static extern bool CryptHashData(
             IntPtr hHash,
-
-            Byte[] pbData,
-
-            Int32 dwDataLen,
-
-            Int32 dwFlags
-
+            byte[] pbData,
+            int dwDataLen,
+            int dwFlags
         );
 
 
@@ -1146,20 +994,13 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Advapi32.dll", SetLastError = true)]
-        public static extern Boolean CryptSignHash(
-
+        public static extern bool CryptSignHash(
             IntPtr hHash,
-
-            Int32 dwKeySpec,
-
-            String sDescription,
-
-            Int32 dwFlags,
-
-            Byte[] pbSignature,
-
-            ref Int32 pdwSigLen
-
+            int dwKeySpec,
+            string sDescription,
+            int dwFlags,
+            byte[] pbSignature,
+            ref int pdwSigLen
         );
 
 
@@ -1174,19 +1015,12 @@ namespace Engine.CryptoAPI
         // );
 
         [DllImport("Advapi32.dll", SetLastError = true)]
-        public static extern Boolean CryptGetUserKey(
-
+        public static extern bool CryptGetUserKey(
             IntPtr hProv,
-
-            Int32 dwKeySpec,
-
+            int dwKeySpec,
             ref IntPtr phUserKey
-
         );
 
-
         #endregion
-
-
     }
 }

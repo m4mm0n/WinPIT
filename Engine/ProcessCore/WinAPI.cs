@@ -4,38 +4,25 @@ using System.Text;
 
 namespace Engine.ProcessCore
 {
-
-    using LARGE_INTEGER = System.UInt64;
-    using DWORD = System.UInt32;
-    using PWSTR = System.IntPtr;
-    using USHORT = System.UInt16;
-    using ULONG = System.UInt32;
+    using LARGE_INTEGER = UInt64;
+    using DWORD = UInt32;
+    using PWSTR = IntPtr;
+    using USHORT = UInt16;
+    using ULONG = UInt32;
 
     public static unsafe class WinAPI
     {
-        #region DLL Names
-
-        private const string kernel32 = "kernel32.dll";
-        private const string advapi32 = "advapi32.dll";
-        private const string secur32 = "secur32.dll";
-        private const string ntdll = "ntdll.dll";
-        private const string psapi = "psapi.dll";
-
-        #endregion
-
         public static uint GetProcessThreadId(int pid, IntPtr hThread)
         {
             var h = CreateToolhelp32Snapshot(SnapshotFlags.Thread, 0);
             if (h != IntPtr.Zero)
             {
-                THREADENTRY32 te = new THREADENTRY32();
-                te.dwSize = (uint)sizeof(THREADENTRY32);
+                var te = new THREADENTRY32();
+                te.dwSize = (uint) sizeof(THREADENTRY32);
                 if (Thread32First(h, ref te))
-                {
                     do
                     {
-                        if (te.dwSize >= (te.th32OwnerProcessID + Marshal.SizeOf(te.th32OwnerProcessID)))
-                        {
+                        if (te.dwSize >= te.th32OwnerProcessID + Marshal.SizeOf(te.th32OwnerProcessID))
                             if (te.th32OwnerProcessID == (uint) pid)
                             {
                                 hThread = OpenThread(ThreadAccess.READ_CONTROL, false, (int) te.th32ThreadID);
@@ -43,9 +30,7 @@ namespace Engine.ProcessCore
                                     return 0;
                                 return te.th32ThreadID;
                             }
-                        }
                     } while (Thread32Next(h, ref te));
-                }
             }
 
             return 0;
@@ -56,24 +41,20 @@ namespace Engine.ProcessCore
             var h = CreateToolhelp32Snapshot(SnapshotFlags.Thread, 0);
             if (h != IntPtr.Zero)
             {
-                THREADENTRY32 te = new THREADENTRY32();
-                te.dwSize = (uint)sizeof(THREADENTRY32);
+                var te = new THREADENTRY32();
+                te.dwSize = (uint) sizeof(THREADENTRY32);
                 if (Thread32First(h, ref te))
-                {
                     do
                     {
-                        if (te.dwSize >= (te.th32OwnerProcessID + Marshal.SizeOf(te.th32OwnerProcessID)))
-                        {
-                            if (te.th32OwnerProcessID == (uint)pid)
+                        if (te.dwSize >= te.th32OwnerProcessID + Marshal.SizeOf(te.th32OwnerProcessID))
+                            if (te.th32OwnerProcessID == (uint) pid)
                             {
-                                var hThread = OpenThread(ThreadAccess.READ_CONTROL, false, (int)te.th32ThreadID);
+                                var hThread = OpenThread(ThreadAccess.READ_CONTROL, false, (int) te.th32ThreadID);
                                 if (hThread == IntPtr.Zero)
                                     return IntPtr.Zero;
                                 return hThread;
                             }
-                        }
                     } while (Thread32Next(h, ref te));
-                }
             }
 
             return IntPtr.Zero;
@@ -83,7 +64,7 @@ namespace Engine.ProcessCore
         {
             var tmpPtr = new IntPtr(toGetArrayFrom);
             var size = Marshal.SizeOf(tmpPtr);
-            byte[] tmp = new byte[size];
+            var tmp = new byte[size];
             Marshal.Copy(tmpPtr, tmp, 0, size);
             return tmp;
         }
@@ -91,72 +72,86 @@ namespace Engine.ProcessCore
         public static byte[] GetBytes(IntPtr toGetArrayFrom)
         {
             var size = Marshal.SizeOf(toGetArrayFrom);
-            byte[] tmp = new byte[size];
+            var tmp = new byte[size];
             Marshal.Copy(toGetArrayFrom, tmp, 0, size);
             return tmp;
         }
 
         public static int SizeOf(byte* bits)
         {
-            IntPtr ptr = new IntPtr(bits);
+            var ptr = new IntPtr(bits);
             //Console.WriteLine(Marshal.SizeOf(ptr));
             return Marshal.SizeOf(ptr);
         }
 
         public static void memcpy(byte* dest, byte* src, uint count)
         {
-            for (uint i = 0; i < count; i++)
-            {
-                *(dest + i) = *(src + i);
-            }
+            for (uint i = 0; i < count; i++) *(dest + i) = *(src + i);
         }
 
         public static IMAGE_SECTION_HEADER* IMAGE_FIRST_SECTION(byte* ptr_image_nt_headers)
         {
             if (Environment.Is64BitProcess)
             {
-                IMAGE_NT_HEADERS64* image_nt_headers = (IMAGE_NT_HEADERS64*)ptr_image_nt_headers;
-                return (IMAGE_SECTION_HEADER*)((long)image_nt_headers +
-                                               (long)Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS64), "OptionalHeader") +
-                                               image_nt_headers->FileHeader.SizeOfOptionalHeader);
+                var image_nt_headers = (IMAGE_NT_HEADERS64*) ptr_image_nt_headers;
+                return (IMAGE_SECTION_HEADER*) ((long) image_nt_headers +
+                                                (long) Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS64), "OptionalHeader") +
+                                                image_nt_headers->FileHeader.SizeOfOptionalHeader);
             }
             else
             {
-                IMAGE_NT_HEADERS32* image_nt_headers = (IMAGE_NT_HEADERS32*)ptr_image_nt_headers;
-                return (IMAGE_SECTION_HEADER*)((long)image_nt_headers +
-                                               (long)Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS32), "OptionalHeader") +
-                                               image_nt_headers->FileHeader.SizeOfOptionalHeader);
+                var image_nt_headers = (IMAGE_NT_HEADERS32*) ptr_image_nt_headers;
+                return (IMAGE_SECTION_HEADER*) ((long) image_nt_headers +
+                                                (long) Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS32), "OptionalHeader") +
+                                                image_nt_headers->FileHeader.SizeOfOptionalHeader);
             }
         }
 
         public static IMAGE_DATA_DIRECTORY* GET_HEADER_DIRECTORY(IMAGE_NT_HEADERS64* ntHeaders, uint index)
         {
-            return (IMAGE_DATA_DIRECTORY*) (ntHeaders->OptionalHeader.DataDirectory[index]);
+            return (IMAGE_DATA_DIRECTORY*) ntHeaders->OptionalHeader.DataDirectory[index];
         }
 
         public static IMAGE_DATA_DIRECTORY* GET_HEADER_DIRECTORY(IMAGE_NT_HEADERS32 ntHeaders, uint index)
         {
-            return (IMAGE_DATA_DIRECTORY*) (ntHeaders.OptionalHeader.DataDirectory[index]);
+            return (IMAGE_DATA_DIRECTORY*) ntHeaders.OptionalHeader.DataDirectory[index];
         }
 
-        public static ushort GetRelocationData(void* baseRelocation, int index) =>
-            *(ushort*)((long)baseRelocation + Marshal.SizeOf<IMAGE_BASE_RELOCATION>() + sizeof(ushort) * index);
+        public static ushort GetRelocationData(void* baseRelocation, int index)
+        {
+            return *(ushort*) ((long) baseRelocation + Marshal.SizeOf<IMAGE_BASE_RELOCATION>() +
+                               sizeof(ushort) * index);
+        }
 
-        public static IMAGE_SECTION_HEADER* GetFirstSection(ulong localImage, IMAGE_DOS_HEADER dosHeader) =>
-            (IMAGE_SECTION_HEADER*) (localImage + (uint) dosHeader.e_lfanew /*START OF NTHEADER*/ +
-                                     (uint) Marshal.SizeOf<IMAGE_NT_HEADERS64>());
+        public static IMAGE_SECTION_HEADER* GetFirstSection(ulong localImage, IMAGE_DOS_HEADER dosHeader)
+        {
+            return (IMAGE_SECTION_HEADER*) (localImage + dosHeader.e_lfanew /*START OF NTHEADER*/ +
+                                            (uint) Marshal.SizeOf<IMAGE_NT_HEADERS64>());
+        }
 
-        public static void GetImageHeaders(byte[] rawImage, out IMAGE_DOS_HEADER dosHeader, out IMAGE_FILE_HEADER fileHeader, out IMAGE_OPTIONAL_HEADER64 optionalHeader, out IMAGE_NT_HEADERS64* ntHeaders)
+        public static void GetImageHeaders(byte[] rawImage, out IMAGE_DOS_HEADER dosHeader,
+            out IMAGE_FILE_HEADER fileHeader, out IMAGE_OPTIONAL_HEADER64 optionalHeader,
+            out IMAGE_NT_HEADERS64* ntHeaders)
         {
             fixed (byte* imagePointer = &rawImage[0])
             {
-                dosHeader = *(IMAGE_DOS_HEADER*)imagePointer;
-                IMAGE_NT_HEADERS64* ntHeader = (IMAGE_NT_HEADERS64*)(imagePointer + dosHeader.e_lfanew);
+                dosHeader = *(IMAGE_DOS_HEADER*) imagePointer;
+                var ntHeader = (IMAGE_NT_HEADERS64*) (imagePointer + dosHeader.e_lfanew);
                 ntHeaders = ntHeader;
                 fileHeader = ntHeader->FileHeader;
                 optionalHeader = ntHeader->OptionalHeader;
             }
         }
+
+        #region DLL Names
+
+        private const string kernel32 = "kernel32.dll";
+        private const string advapi32 = "advapi32.dll";
+        private const string secur32 = "secur32.dll";
+        private const string ntdll = "ntdll.dll";
+        private const string psapi = "psapi.dll";
+
+        #endregion
 
 
         #region Natives
@@ -164,13 +159,16 @@ namespace Engine.ProcessCore
         #region psapi.dll
 
         [DllImport(psapi, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-        public static extern int EnumProcessModules(IntPtr hProcess, [Out] ulong lphModule, uint cb, out uint lpcbNeeded);
+        public static extern int EnumProcessModules(IntPtr hProcess, [Out] ulong lphModule, uint cb,
+            out uint lpcbNeeded);
 
         [DllImport(psapi, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint GetModuleFileNameEx(IntPtr hProcess, ulong hModule, [Out] StringBuilder lpBaseName, uint nSize);
+        public static extern uint GetModuleFileNameEx(IntPtr hProcess, ulong hModule, [Out] StringBuilder lpBaseName,
+            uint nSize);
 
         [DllImport(psapi, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint GetModuleBaseName(IntPtr hProcess, ulong hModule, [Out] StringBuilder lpBaseName, uint nSize);
+        public static extern uint GetModuleBaseName(IntPtr hProcess, ulong hModule, [Out] StringBuilder lpBaseName,
+            uint nSize);
 
         [DllImport(psapi, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool GetModuleInformation(IntPtr processHandle, IntPtr moduleHandle,
@@ -181,17 +179,17 @@ namespace Engine.ProcessCore
         #region ntdll.dll
 
         [DllImport(ntdll, SetLastError = true)]
-        public static extern Int32 NtSetInformationToken(
+        public static extern int NtSetInformationToken(
             IntPtr TokenHandle,
-            Int32 TokenInformationClass,
+            int TokenInformationClass,
             ref TOKEN_MANDATORY_LABEL TokenInformation,
-            Int32 TokenInformationLength
+            int TokenInformationLength
         );
 
         [DllImport(ntdll, SetLastError = true)]
         public static extern int NtFilterToken(
             IntPtr TokenHandle,
-            UInt32 Flags,
+            uint Flags,
             IntPtr SidsToDisable,
             IntPtr PrivilegesToDelete,
             IntPtr RestrictedSids,
@@ -224,13 +222,12 @@ namespace Engine.ProcessCore
         [DllImport(ntdll, SetLastError = true)]
         public static extern uint RtlGetVersion(_OSVERSIONINFOEXW* lpVersionInformation);
 
-
         #endregion
 
         #region secur32.dll
 
         [DllImport(secur32)]
-        public static extern UInt32 LsaGetLogonSessionData(
+        public static extern uint LsaGetLogonSessionData(
             IntPtr LogonId,
             out IntPtr ppLogonSessionData
         );
@@ -255,10 +252,12 @@ namespace Engine.ProcessCore
         public static extern uint GetCurrentProcessId();
 
         [DllImport(kernel32, SetLastError = true)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, out uint lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize,
+            out uint lpNumberOfBytesRead);
 
         [DllImport(kernel32, SetLastError = true)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, ref uint lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize,
+            ref uint lpNumberOfBytesRead);
 
         [DllImport(kernel32, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern uint GetPackageFamilyName(IntPtr hProcess, ref uint packageFamilyNameLength,
@@ -326,8 +325,8 @@ namespace Engine.ProcessCore
         public static extern bool SuspendThread(IntPtr hThread);
 
         [DllImport(kernel32, SetLastError = true)]
-        public static extern UInt32 SearchPath(string lpPath, string lpFileName, string lpExtension,
-            UInt32 nBufferLength, StringBuilder lpBuffer, ref IntPtr lpFilePart);
+        public static extern uint SearchPath(string lpPath, string lpFileName, string lpExtension,
+            uint nBufferLength, StringBuilder lpBuffer, ref IntPtr lpFilePart);
 
         [DllImport(kernel32, EntryPoint = "RtlZeroMemory", SetLastError = false)]
         public static extern void ZeroMemory(IntPtr dest, IntPtr size);
@@ -414,6 +413,7 @@ namespace Engine.ProcessCore
         [DllImport(kernel32, SetLastError = true)]
         public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize,
             out IntPtr lpNumberOfBytesWritten);
+
         #endregion
 
         #region advapi32.dll
@@ -436,13 +436,14 @@ namespace Engine.ProcessCore
 
         [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool AdjustTokenPrivileges(IntPtr tokenhandle, bool disableprivs,
-            ref _TOKEN_PRIVILEGES Newstate, int bufferlength, ref _TOKEN_PRIVILEGES PreivousState, out uint Returnlength);
+            ref _TOKEN_PRIVILEGES Newstate, int bufferlength, ref _TOKEN_PRIVILEGES PreivousState,
+            out uint Returnlength);
 
         [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool LookupPrivilegeValue(string lpsystemname, string lpname, ref _LUID lpLuid);
 
         [DllImport(advapi32, SetLastError = true)]
-        public static extern Boolean RevertToSelf();
+        public static extern bool RevertToSelf();
 
         [DllImport(advapi32, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool CreateProcessWithLogonW(
@@ -460,29 +461,29 @@ namespace Engine.ProcessCore
         );
 
         [DllImport(advapi32, SetLastError = true)]
-        public static extern Boolean AllocateAndInitializeSid(
+        public static extern bool AllocateAndInitializeSid(
             ref SidIdentifierAuthority pIdentifierAuthority,
             byte nSubAuthorityCount,
-            Int32 dwSubAuthority0,
-            Int32 dwSubAuthority1,
-            Int32 dwSubAuthority2,
-            Int32 dwSubAuthority3,
-            Int32 dwSubAuthority4,
-            Int32 dwSubAuthority5,
-            Int32 dwSubAuthority6,
-            Int32 dwSubAuthority7,
+            int dwSubAuthority0,
+            int dwSubAuthority1,
+            int dwSubAuthority2,
+            int dwSubAuthority3,
+            int dwSubAuthority4,
+            int dwSubAuthority5,
+            int dwSubAuthority6,
+            int dwSubAuthority7,
             out IntPtr pSid
         );
 
         [DllImport(advapi32, SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool LookupAccountSid(
-            String lpSystemName,
+            string lpSystemName,
             //[MarshalAs(UnmanagedType.LPArray)] 
             IntPtr Sid,
             StringBuilder lpName,
-            ref UInt32 cchName,
+            ref uint cchName,
             StringBuilder ReferencedDomainName,
-            ref UInt32 cchReferencedDomainName,
+            ref uint cchReferencedDomainName,
             out _SID_NAME_USE peUse
         );
 
@@ -491,27 +492,27 @@ namespace Engine.ProcessCore
             uint tokenInformationLength, out uint returnLength);
 
         [DllImport(advapi32, SetLastError = true)]
-        public static extern Boolean GetTokenInformation(
+        public static extern bool GetTokenInformation(
             IntPtr TokenHandle,
             _TOKEN_INFORMATION_CLASS TokenInformationClass,
             ref _TOKEN_STATISTICS TokenInformation,
-            UInt32 TokenInformationLength,
-            out UInt32 ReturnLength
+            uint TokenInformationLength,
+            out uint ReturnLength
         );
 
         [DllImport(advapi32, SetLastError = true)]
-        public static extern Boolean GetTokenInformation(
+        public static extern bool GetTokenInformation(
             IntPtr TokenHandle,
             _TOKEN_INFORMATION_CLASS TokenInformationClass,
             IntPtr TokenInformation,
-            UInt32 TokenInformationLength,
-            out UInt32 ReturnLength
+            uint TokenInformationLength,
+            out uint ReturnLength
         );
 
         [DllImport(advapi32, SetLastError = true)]
         public static extern bool DuplicateTokenEx(
             IntPtr hExistingToken,
-            UInt32 dwDesiredAccess,
+            uint dwDesiredAccess,
             ref SECURITY_ATTRIBUTES lpTokenAttributes,
             _SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
             TOKEN_TYPE TokenType,
@@ -522,8 +523,8 @@ namespace Engine.ProcessCore
         public static extern bool ImpersonateLoggedOnUser(
             IntPtr hToken
         );
-        #endregion
 
+        #endregion
 
         #endregion
 
@@ -531,33 +532,43 @@ namespace Engine.ProcessCore
 
         #region LoadLibraryFlags
 
-        public enum LoadLibraryFlags:uint
+        public enum LoadLibraryFlags : uint
         {
             DONT_RESOLVE_DLL_REFERENCES =
                 0x00000001,
-            LOAD_IGNORE_CODE_AUTHZ_LEVEL=
+
+            LOAD_IGNORE_CODE_AUTHZ_LEVEL =
                 0x00000010,
-            LOAD_LIBRARY_AS_DATAFILE=
+
+            LOAD_LIBRARY_AS_DATAFILE =
                 0x00000002,
-            LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE=
+
+            LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE =
                 0x00000040,
-            LOAD_LIBRARY_AS_IMAGE_RESOURCE=
+
+            LOAD_LIBRARY_AS_IMAGE_RESOURCE =
                 0x00000020,
+
             LOAD_LIBRARY_SEARCH_APPLICATION_DIR =
                 0x00000200,
+
             LOAD_LIBRARY_SEARCH_DEFAULT_DIRS =
                 0x00001000,
+
             LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR =
                 0x00000100,
+
             LOAD_LIBRARY_SEARCH_SYSTEM32 =
                 0x00000800,
+
             LOAD_LIBRARY_SEARCH_USER_DIRS =
                 0x00000400,
+
             LOAD_WITH_ALTERED_SEARCH_PATH =
                 0x00000008
         }
 
-            #endregion
+        #endregion
 
         #region PROCESS_BASIC_INFORMATION
 
@@ -571,13 +582,10 @@ namespace Engine.ProcessCore
             public ulong UniqueProcessId;
             public ulong InheritedFromUniqueProcessId;
 
-            public int Size
-            {
-                get { return Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(); }
-            }
+            public int Size => Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
         }
 
-            #endregion
+        #endregion
 
         #region _PEB
 
@@ -591,7 +599,7 @@ namespace Engine.ProcessCore
             public ulong Ldr;
         }
 
-            #endregion
+        #endregion
 
         #region _PEB_LDR_DATA
 
@@ -607,7 +615,7 @@ namespace Engine.ProcessCore
             public ulong EntryInProgress;
         }
 
-            #endregion
+        #endregion
 
         #region _LDR_DATA_TABLE_ENTRY
 
@@ -644,7 +652,7 @@ namespace Engine.ProcessCore
             public ulong Blink;
         }
 
-            #endregion
+        #endregion
 
         #endregion
 
@@ -659,13 +667,13 @@ namespace Engine.ProcessCore
 
             public UNICODE_STRING(string s)
             {
-                Length = (ushort)(s.Length * 2);
-                MaximumLength = (ushort)(Length + 2);
+                Length = (ushort) (s.Length * 2);
+                MaximumLength = (ushort) (Length + 2);
                 Buffer = 0;
             }
         }
 
-            #endregion
+        #endregion
 
         #region NtModuleInfo
 
@@ -673,16 +681,16 @@ namespace Engine.ProcessCore
         public struct NtModuleInfo
         {
             // Token: 0x04002EF0 RID: 12016
-            public IntPtr BaseOfDll;// = (IntPtr)0;
+            public IntPtr BaseOfDll; // = (IntPtr)0;
 
             // Token: 0x04002EF1 RID: 12017
             public int SizeOfImage;
 
             // Token: 0x04002EF2 RID: 12018
-            public IntPtr EntryPoint;// = (IntPtr)0;
+            public IntPtr EntryPoint; // = (IntPtr)0;
         }
 
-            #endregion
+        #endregion
 
         #region SECURITY_DESCRIPTOR
 
@@ -720,23 +728,23 @@ namespace Engine.ProcessCore
             SE_SELF_RELATIVE = 0x8000
         }
 
-            #endregion
+        #endregion
 
         #region THREADENTRY32
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct THREADENTRY32
         {
-            public UInt32 dwSize;
-            public UInt32 cntUsage;
-            public UInt32 th32ThreadID;
-            public UInt32 th32OwnerProcessID;
-            public UInt32 tpBasePri;
-            public UInt32 tpDeltaPri;
-            public UInt32 dwFlags;
+            public uint dwSize;
+            public uint cntUsage;
+            public uint th32ThreadID;
+            public uint th32OwnerProcessID;
+            public uint tpBasePri;
+            public uint tpDeltaPri;
+            public uint dwFlags;
         }
 
-            #endregion
+        #endregion
 
         #region SnapshotFlags
 
@@ -753,7 +761,7 @@ namespace Engine.ProcessCore
             NoHeaps = 0x40000000
         }
 
-            #endregion
+        #endregion
 
         #region PROCESSENTRY32
 
@@ -761,20 +769,21 @@ namespace Engine.ProcessCore
         public struct PROCESSENTRY32
         {
             public const int MAX_PATH = 260;
-            public UInt32 dwSize;
-            public UInt32 cntUsage;
-            public UInt32 th32ProcessID;
+            public uint dwSize;
+            public uint cntUsage;
+            public uint th32ProcessID;
             public IntPtr th32DefaultHeapID;
-            public UInt32 th32ModuleID;
-            public UInt32 cntThreads;
-            public UInt32 th32ParentProcessID;
-            public Int32 pcPriClassBase;
-            public UInt32 dwFlags;
+            public uint th32ModuleID;
+            public uint cntThreads;
+            public uint th32ParentProcessID;
+            public int pcPriClassBase;
+            public uint dwFlags;
+
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
             public string szExeFile;
         }
 
-            #endregion
+        #endregion
 
         #region M128A
 
@@ -786,11 +795,11 @@ namespace Engine.ProcessCore
 
             public override string ToString()
             {
-                return string.Format("High:{0}, Low:{1}", this.High, this.Low);
+                return string.Format("High:{0}, Low:{1}", High, Low);
             }
         }
 
-            #endregion
+        #endregion
 
         #region XSAVE_FORMAT64
 
@@ -835,8 +844,10 @@ namespace Engine.ProcessCore
             public uint ErrorSelector;
             public uint DataOffset;
             public uint DataSelector;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 80)]
             public byte[] RegisterArea;
+
             public uint Cr0NpxState;
         }
 
@@ -848,40 +859,50 @@ namespace Engine.ProcessCore
         public struct CONTEXT
         {
             public CONTEXT_FLAGS ContextFlags; //set this to an appropriate value 
+
             // Retrieved by CONTEXT_DEBUG_REGISTERS 
             public uint Dr0;
             public uint Dr1;
             public uint Dr2;
             public uint Dr3;
             public uint Dr6;
+
             public uint Dr7;
+
             // Retrieved by CONTEXT_FLOATING_POINT 
             public FLOATING_SAVE_AREA FloatSave;
+
             // Retrieved by CONTEXT_SEGMENTS 
             public uint SegGs;
             public uint SegFs;
             public uint SegEs;
+
             public uint SegDs;
+
             // Retrieved by CONTEXT_INTEGER 
             public uint Edi;
             public uint Esi;
             public uint Ebx;
             public uint Edx;
             public uint Ecx;
+
             public uint Eax;
+
             // Retrieved by CONTEXT_CONTROL 
             public uint Ebp;
             public uint Eip;
             public uint SegCs;
             public uint EFlags;
             public uint Esp;
+
             public uint SegSs;
+
             // Retrieved by CONTEXT_EXTENDED_REGISTERS 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 512)]
             public byte[] ExtendedRegisters;
         }
 
-            #endregion
+        #endregion
 
         #region CONTEXT64
 
@@ -935,6 +956,7 @@ namespace Engine.ProcessCore
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 26)]
             public M128A[] VectorRegister;
+
             public ulong VectorControl;
 
             public ulong DebugControl;
@@ -951,7 +973,7 @@ namespace Engine.ProcessCore
         public enum CONTEXT_FLAGS : uint
         {
             CONTEXT_i386 = 0x10000,
-            CONTEXT_i486 = 0x10000,   //  same as i386
+            CONTEXT_i486 = 0x10000, //  same as i386
             CONTEXT_CONTROL = CONTEXT_i386 | 0x01, // SS:SP, CS:IP, FLAGS, BP
             CONTEXT_INTEGER = CONTEXT_i386 | 0x02, // AX, BX, CX, DX, SI, DI
             CONTEXT_SEGMENTS = CONTEXT_i386 | 0x04, // DS, ES, FS, GS
@@ -959,29 +981,31 @@ namespace Engine.ProcessCore
             CONTEXT_DEBUG_REGISTERS = CONTEXT_i386 | 0x10, // DB 0-3,6,7
             CONTEXT_EXTENDED_REGISTERS = CONTEXT_i386 | 0x20, // cpu specific extensions
             CONTEXT_FULL = CONTEXT_CONTROL | CONTEXT_INTEGER | CONTEXT_SEGMENTS,
-            CONTEXT_ALL = CONTEXT_CONTROL | CONTEXT_INTEGER | CONTEXT_SEGMENTS | CONTEXT_FLOATING_POINT | CONTEXT_DEBUG_REGISTERS | CONTEXT_EXTENDED_REGISTERS
+
+            CONTEXT_ALL = CONTEXT_CONTROL | CONTEXT_INTEGER | CONTEXT_SEGMENTS | CONTEXT_FLOATING_POINT |
+                          CONTEXT_DEBUG_REGISTERS | CONTEXT_EXTENDED_REGISTERS
         }
 
-            #endregion
+        #endregion
 
         #region ThreadAccess
 
         [Flags]
-        public enum ThreadAccess : int
+        public enum ThreadAccess
         {
-            TERMINATE = (0x0001),
-            SUSPEND_RESUME = (0x0002),
-            GET_CONTEXT = (0x0008),
-            SET_CONTEXT = (0x0010),
-            SET_INFORMATION = (0x0020),
-            QUERY_INFORMATION = (0x0040),
-            SET_THREAD_TOKEN = (0x0080),
-            IMPERSONATE = (0x0100),
-            DIRECT_IMPERSONATION = (0x0200),
-            READ_CONTROL = (0x00020000)
+            TERMINATE = 0x0001,
+            SUSPEND_RESUME = 0x0002,
+            GET_CONTEXT = 0x0008,
+            SET_CONTEXT = 0x0010,
+            SET_INFORMATION = 0x0020,
+            QUERY_INFORMATION = 0x0040,
+            SET_THREAD_TOKEN = 0x0080,
+            IMPERSONATE = 0x0100,
+            DIRECT_IMPERSONATION = 0x0200,
+            READ_CONTROL = 0x00020000
         }
 
-            #endregion
+        #endregion
 
         #region _OSVERSIONINFOEXW
 
@@ -993,7 +1017,7 @@ namespace Engine.ProcessCore
             public uint dwMinorVersion;
             public uint dwBuildNumber;
             public uint dwPlatformId;
-            public fixed byte szCSDVersion[128 * 2/*WCHAR*/];     // Maintenance string for PSS usage
+            public fixed byte szCSDVersion[128 * 2 /*WCHAR*/]; // Maintenance string for PSS usage
             public ushort wServicePackMajor;
             public ushort wServicePackMinor;
             public ushort wSuiteMask;
@@ -1005,7 +1029,7 @@ namespace Engine.ProcessCore
 
         #region ProcessInformationClass
 
-        public enum ProcessInformationClass : int
+        public enum ProcessInformationClass
         {
             ProcessBasicInformation = 0, // 0, q: PROCESS_BASIC_INFORMATION, PROCESS_EXTENDED_BASIC_INFORMATION
             ProcessQuotaLimits, // qs: QUOTA_LIMITS, QUOTA_LIMITS_EX
@@ -1065,7 +1089,7 @@ namespace Engine.ProcessCore
             ProcessKeepAliveCount, // q: PROCESS_KEEPALIVE_COUNT_INFORMATION
             ProcessRevokeFileHandles, // s: PROCESS_REVOKE_FILE_HANDLES_INFORMATION
             MaxProcessInfoClass
-        };
+        }
 
         #endregion
 
@@ -1133,22 +1157,24 @@ namespace Engine.ProcessCore
 
         public static class TOKEN_ACCESS
         {
-            public const UInt32 STANDARD_RIGHTS_REQUIRED = 0x000F0000;
-            public const UInt32 STANDARD_RIGHTS_READ = 0x00020000;
-            public const UInt32 TOKEN_ASSIGN_PRIMARY = 0x0001;
-            public const UInt32 TOKEN_DUPLICATE = 0x0002;
-            public const UInt32 TOKEN_IMPERSONATE = 0x0004;
-            public const UInt32 TOKEN_QUERY = 0x0008;
-            public const UInt32 TOKEN_QUERY_SOURCE = 0x0010;
-            public const UInt32 TOKEN_ADJUST_PRIVILEGES = 0x0020;
-            public const UInt32 TOKEN_ADJUST_GROUPS = 0x0040;
-            public const UInt32 TOKEN_ADJUST_DEFAULT = 0x0080;
-            public const UInt32 TOKEN_ADJUST_SESSIONID = 0x0100;
-            public const UInt32 TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY);
-            public const UInt32 TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
-                                                    TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
-                                                    TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
-                                                    TOKEN_ADJUST_SESSIONID);
+            public const uint STANDARD_RIGHTS_REQUIRED = 0x000F0000;
+            public const uint STANDARD_RIGHTS_READ = 0x00020000;
+            public const uint TOKEN_ASSIGN_PRIMARY = 0x0001;
+            public const uint TOKEN_DUPLICATE = 0x0002;
+            public const uint TOKEN_IMPERSONATE = 0x0004;
+            public const uint TOKEN_QUERY = 0x0008;
+            public const uint TOKEN_QUERY_SOURCE = 0x0010;
+            public const uint TOKEN_ADJUST_PRIVILEGES = 0x0020;
+            public const uint TOKEN_ADJUST_GROUPS = 0x0040;
+            public const uint TOKEN_ADJUST_DEFAULT = 0x0080;
+            public const uint TOKEN_ADJUST_SESSIONID = 0x0100;
+            public const uint TOKEN_READ = STANDARD_RIGHTS_READ | TOKEN_QUERY;
+
+            public const uint TOKEN_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
+                                                 TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY |
+                                                 TOKEN_QUERY_SOURCE |
+                                                 TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
+                                                 TOKEN_ADJUST_SESSIONID;
         }
 
         #endregion
@@ -1194,20 +1220,20 @@ namespace Engine.ProcessCore
             WINSTA_ENUMERATE = 0x00000100,
             WINSTA_READSCREEN = 0x00000200,
             WINSTA_ALL_ACCESS = 0x0000037F
-        };
+        }
 
         #endregion
 
         #region _SECURITY_IMPERSONATION_LEVEL
 
         [Flags]
-        public enum _SECURITY_IMPERSONATION_LEVEL : int
+        public enum _SECURITY_IMPERSONATION_LEVEL
         {
             SecurityAnonymous = 0,
             SecurityIdentification = 1,
             SecurityImpersonation = 2,
             SecurityDelegation = 3
-        };
+        }
 
         #endregion
 
@@ -1229,13 +1255,13 @@ namespace Engine.ProcessCore
         {
             public _LUID TokenId;
             public _LUID AuthenticationId;
-            public LARGE_INTEGER ExpirationTime;
+            public ulong ExpirationTime;
             public TOKEN_TYPE TokenType;
             public _SECURITY_IMPERSONATION_LEVEL ImpersonationLevel;
-            public DWORD DynamicCharged;
-            public DWORD DynamicAvailable;
-            public DWORD GroupCount;
-            public DWORD PrivilegeCount;
+            public uint DynamicCharged;
+            public uint DynamicAvailable;
+            public uint GroupCount;
+            public uint PrivilegeCount;
             public _LUID ModifiedId;
         }
 
@@ -1246,8 +1272,8 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct _LSA_UNICODE_STRING
         {
-            public USHORT Length;
-            public USHORT MaximumLength;
+            public ushort Length;
+            public ushort MaximumLength;
             public PWSTR Buffer;
         }
 
@@ -1258,17 +1284,18 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct _SECURITY_LOGON_SESSION_DATA
         {
-            public ULONG Size;
+            public uint Size;
             public _LUID LogonId;
             public _LSA_UNICODE_STRING UserName;
             public _LSA_UNICODE_STRING LogonDomain;
             public _LSA_UNICODE_STRING AuthenticationPackage;
-            public ULONG LogonType;
-            public ULONG Session;
+            public uint LogonType;
+            public uint Session;
             public IntPtr Sid;
-            public LARGE_INTEGER LogonTime;
+            public ulong LogonTime;
             public _LSA_UNICODE_STRING LogonServer;
             public _LSA_UNICODE_STRING DnsDomainName;
+
             public _LSA_UNICODE_STRING Upn;
             /*
             public ULONG UserFlags;
@@ -1322,7 +1349,7 @@ namespace Engine.ProcessCore
         public struct SID_AND_ATTRIBUTES
         {
             public IntPtr Sid;
-            public UInt32 Attributes;
+            public uint Attributes;
         }
 
         #endregion
@@ -1342,25 +1369,25 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct _STARTUPINFO
         {
-            public UInt32 cb;
-            public String lpReserved;
-            public String lpDesktop;
-            public String lpTitle;
-            public UInt32 dwX;
-            public UInt32 dwY;
-            public UInt32 dwXSize;
-            public UInt32 dwYSize;
-            public UInt32 dwXCountChars;
-            public UInt32 dwYCountChars;
-            public UInt32 dwFillAttribute;
-            public UInt32 dwFlags;
-            public UInt16 wShowWindow;
-            public UInt16 cbReserved2;
+            public uint cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public uint dwX;
+            public uint dwY;
+            public uint dwXSize;
+            public uint dwYSize;
+            public uint dwXCountChars;
+            public uint dwYCountChars;
+            public uint dwFillAttribute;
+            public uint dwFlags;
+            public ushort wShowWindow;
+            public ushort cbReserved2;
             public IntPtr lpReserved2;
             public IntPtr hStdInput;
             public IntPtr hStdOutput;
             public IntPtr hStdError;
-        };
+        }
 
         #endregion
 
@@ -1371,22 +1398,21 @@ namespace Engine.ProcessCore
         {
             public IntPtr hProcess;
             public IntPtr hThread;
-            public UInt32 dwProcessId;
-            public UInt32 dwThreadId;
-        };
+            public uint dwProcessId;
+            public uint dwThreadId;
+        }
 
-
-            #endregion
+        #endregion
 
         #region SECURITY_ATTRIBUTES
 
         [StructLayout(LayoutKind.Sequential)]
         public struct SECURITY_ATTRIBUTES
         {
-            UInt32 nLength;
-            IntPtr lpSecurityDescriptor;
-            Boolean bInheritHandle;
-        };
+            private readonly uint nLength;
+            private readonly IntPtr lpSecurityDescriptor;
+            private readonly bool bInheritHandle;
+        }
 
         #endregion
 
@@ -1407,7 +1433,7 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct _TOKEN_PRIVILEGES
         {
-            public UInt32 PrivilegeCount;
+            public uint PrivilegeCount;
             public _LUID_AND_ATTRIBUTES Privileges;
         }
 
@@ -1418,7 +1444,8 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct _TOKEN_PRIVILEGES_ARRAY
         {
-            public UInt32 PrivilegeCount;
+            public uint PrivilegeCount;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 30)]
             public _LUID_AND_ATTRIBUTES[] Privileges;
         }
@@ -1431,7 +1458,7 @@ namespace Engine.ProcessCore
         public struct _LUID_AND_ATTRIBUTES
         {
             public _LUID Luid;
-            public UInt32 Attributes;
+            public uint Attributes;
         }
 
         #endregion
@@ -1441,8 +1468,8 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct _LUID
         {
-            public UInt32 LowPart;
-            public UInt32 HighPart;
+            public uint LowPart;
+            public uint HighPart;
         }
 
         #endregion
@@ -1488,78 +1515,108 @@ namespace Engine.ProcessCore
         public enum MemoryProtectionFlags
         {
             /// <summary>
-            /// Disables all access to the committed region of pages. An attempt to read from, write to, or execute the committed region results in an access violation.
-            /// This value is not officially present in the Microsoft's enumeration but can occur according to the MEMORY_BASIC_INFORMATION structure documentation.
+            ///     Disables all access to the committed region of pages. An attempt to read from, write to, or execute the committed
+            ///     region results in an access violation.
+            ///     This value is not officially present in the Microsoft's enumeration but can occur according to the
+            ///     MEMORY_BASIC_INFORMATION structure documentation.
             /// </summary>
             ZeroAccess = 0x0,
+
             /// <summary>
-            /// Enables execute access to the committed region of pages. An attempt to read from or write to the committed region results in an access violation.
-            /// This flag is not supported by the CreateFileMapping function.
+            ///     Enables execute access to the committed region of pages. An attempt to read from or write to the committed region
+            ///     results in an access violation.
+            ///     This flag is not supported by the CreateFileMapping function.
             /// </summary>
             Execute = 0x10,
+
             /// <summary>
-            /// Enables execute or read-only access to the committed region of pages. An attempt to write to the committed region results in an access violation.
+            ///     Enables execute or read-only access to the committed region of pages. An attempt to write to the committed region
+            ///     results in an access violation.
             /// </summary>
             ExecuteRead = 0x20,
+
             /// <summary>
-            /// Enables execute, read-only, or read/write access to the committed region of pages.
+            ///     Enables execute, read-only, or read/write access to the committed region of pages.
             /// </summary>
             ExecuteReadWrite = 0x40,
+
             /// <summary>
-            /// Enables execute, read-only, or copy-on-write access to a mapped view of a file mapping object. 
-            /// An attempt to write to a committed copy-on-write page results in a private copy of the page being made for the process. 
-            /// The private page is marked as PAGE_EXECUTE_READWRITE, and the change is written to the new page.
-            /// This flag is not supported by the VirtualAlloc or <see cref="VirtualAllocEx"/> functions. 
+            ///     Enables execute, read-only, or copy-on-write access to a mapped view of a file mapping object.
+            ///     An attempt to write to a committed copy-on-write page results in a private copy of the page being made for the
+            ///     process.
+            ///     The private page is marked as PAGE_EXECUTE_READWRITE, and the change is written to the new page.
+            ///     This flag is not supported by the VirtualAlloc or <see cref="VirtualAllocEx" /> functions.
             /// </summary>
             ExecuteWriteCopy = 0x80,
+
             /// <summary>
-            /// Disables all access to the committed region of pages. An attempt to read from, write to, or execute the committed region results in an access violation.
-            /// This flag is not supported by the CreateFileMapping function.
+            ///     Disables all access to the committed region of pages. An attempt to read from, write to, or execute the committed
+            ///     region results in an access violation.
+            ///     This flag is not supported by the CreateFileMapping function.
             /// </summary>
             NoAccess = 0x01,
+
             /// <summary>
-            /// Enables read-only access to the committed region of pages. An attempt to write to the committed region results in an access violation. 
-            /// If Data Execution Prevention is enabled, an attempt to execute code in the committed region results in an access violation.
+            ///     Enables read-only access to the committed region of pages. An attempt to write to the committed region results in
+            ///     an access violation.
+            ///     If Data Execution Prevention is enabled, an attempt to execute code in the committed region results in an access
+            ///     violation.
             /// </summary>
             ReadOnly = 0x02,
+
             /// <summary>
-            /// Enables read-only or read/write access to the committed region of pages. 
-            /// If Data Execution Prevention is enabled, attempting to execute code in the committed region results in an access violation.
+            ///     Enables read-only or read/write access to the committed region of pages.
+            ///     If Data Execution Prevention is enabled, attempting to execute code in the committed region results in an access
+            ///     violation.
             /// </summary>
             ReadWrite = 0x04,
+
             /// <summary>
-            /// Enables read-only or copy-on-write access to a mapped view of a file mapping object. 
-            /// An attempt to write to a committed copy-on-write page results in a private copy of the page being made for the process. 
-            /// The private page is marked as PAGE_READWRITE, and the change is written to the new page. 
-            /// If Data Execution Prevention is enabled, attempting to execute code in the committed region results in an access violation.
-            /// This flag is not supported by the VirtualAlloc or <see cref="VirtualAllocEx"/> functions.
+            ///     Enables read-only or copy-on-write access to a mapped view of a file mapping object.
+            ///     An attempt to write to a committed copy-on-write page results in a private copy of the page being made for the
+            ///     process.
+            ///     The private page is marked as PAGE_READWRITE, and the change is written to the new page.
+            ///     If Data Execution Prevention is enabled, attempting to execute code in the committed region results in an access
+            ///     violation.
+            ///     This flag is not supported by the VirtualAlloc or <see cref="VirtualAllocEx" /> functions.
             /// </summary>
             WriteCopy = 0x08,
+
             /// <summary>
-            /// Pages in the region become guard pages. 
-            /// Any attempt to access a guard page causes the system to raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off the guard page status. 
-            /// Guard pages thus act as a one-time access alarm. For more information, see Creating Guard Pages.
-            /// When an access attempt leads the system to turn off guard page status, the underlying page protection takes over.
-            /// If a guard page exception occurs during a system service, the service typically returns a failure status indicator.
-            /// This value cannot be used with PAGE_NOACCESS.
-            /// This flag is not supported by the CreateFileMapping function.
+            ///     Pages in the region become guard pages.
+            ///     Any attempt to access a guard page causes the system to raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off
+            ///     the guard page status.
+            ///     Guard pages thus act as a one-time access alarm. For more information, see Creating Guard Pages.
+            ///     When an access attempt leads the system to turn off guard page status, the underlying page protection takes over.
+            ///     If a guard page exception occurs during a system service, the service typically returns a failure status indicator.
+            ///     This value cannot be used with PAGE_NOACCESS.
+            ///     This flag is not supported by the CreateFileMapping function.
             /// </summary>
             Guard = 0x100,
+
             /// <summary>
-            /// Sets all pages to be non-cachable. Applications should not use this attribute except when explicitly required for a device. 
-            /// Using the interlocked functions with memory that is mapped with SEC_NOCACHE can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
-            /// The PAGE_NOCACHE flag cannot be used with the PAGE_GUARD, PAGE_NOACCESS, or PAGE_WRITECOMBINE flags.
-            /// The PAGE_NOCACHE flag can be used only when allocating private memory with the VirtualAlloc, <see cref="VirtualAllocEx"/>, or VirtualAllocExNuma functions. 
-            /// To enable non-cached memory access for shared memory, specify the SEC_NOCACHE flag when calling the CreateFileMapping function.
+            ///     Sets all pages to be non-cachable. Applications should not use this attribute except when explicitly required for a
+            ///     device.
+            ///     Using the interlocked functions with memory that is mapped with SEC_NOCACHE can result in an
+            ///     EXCEPTION_ILLEGAL_INSTRUCTION exception.
+            ///     The PAGE_NOCACHE flag cannot be used with the PAGE_GUARD, PAGE_NOACCESS, or PAGE_WRITECOMBINE flags.
+            ///     The PAGE_NOCACHE flag can be used only when allocating private memory with the VirtualAlloc,
+            ///     <see cref="VirtualAllocEx" />, or VirtualAllocExNuma functions.
+            ///     To enable non-cached memory access for shared memory, specify the SEC_NOCACHE flag when calling the
+            ///     CreateFileMapping function.
             /// </summary>
             NoCache = 0x200,
+
             /// <summary>
-            /// Sets all pages to be write-combined.
-            /// Applications should not use this attribute except when explicitly required for a device. 
-            /// Using the interlocked functions with memory that is mapped as write-combined can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
-            /// The PAGE_WRITECOMBINE flag cannot be specified with the PAGE_NOACCESS, PAGE_GUARD, and PAGE_NOCACHE flags.
-            /// The PAGE_WRITECOMBINE flag can be used only when allocating private memory with the VirtualAlloc, <see cref="VirtualAllocEx"/>, or VirtualAllocExNuma functions. 
-            /// To enable write-combined memory access for shared memory, specify the SEC_WRITECOMBINE flag when calling the CreateFileMapping function.
+            ///     Sets all pages to be write-combined.
+            ///     Applications should not use this attribute except when explicitly required for a device.
+            ///     Using the interlocked functions with memory that is mapped as write-combined can result in an
+            ///     EXCEPTION_ILLEGAL_INSTRUCTION exception.
+            ///     The PAGE_WRITECOMBINE flag cannot be specified with the PAGE_NOACCESS, PAGE_GUARD, and PAGE_NOCACHE flags.
+            ///     The PAGE_WRITECOMBINE flag can be used only when allocating private memory with the VirtualAlloc,
+            ///     <see cref="VirtualAllocEx" />, or VirtualAllocExNuma functions.
+            ///     To enable write-combined memory access for shared memory, specify the SEC_WRITECOMBINE flag when calling the
+            ///     CreateFileMapping function.
             /// </summary>
             WriteCombine = 0x400
         }
@@ -1592,12 +1649,12 @@ namespace Engine.ProcessCore
         [StructLayout(LayoutKind.Sequential)]
         public struct IMAGE_THUNK_DATA
         {
-            public static uint SizeOf = (uint)Marshal.SizeOf(typeof(IMAGE_THUNK_DATA));
+            public static uint SizeOf = (uint) Marshal.SizeOf(typeof(IMAGE_THUNK_DATA));
 
-            public IntPtr ForwarderString;      // PBYTE 
-            public IntPtr Function;             // PDWORD
+            public IntPtr ForwarderString; // PBYTE 
+            public IntPtr Function; // PDWORD
             public IntPtr Ordinal;
-            public IntPtr AddressOfData;        // PIMAGE_IMPORT_BY_NAME
+            public IntPtr AddressOfData; // PIMAGE_IMPORT_BY_NAME
         }
 
         #endregion
@@ -1605,27 +1662,27 @@ namespace Engine.ProcessCore
         #region IMAGE_DOS_HEADER
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct IMAGE_DOS_HEADER                         // DOS .EXE header
+        public struct IMAGE_DOS_HEADER // DOS .EXE header
         {
-            public ushort e_magic;                      // Magic number
-            public ushort e_cblp;                       // Bytes on last page of file
-            public ushort e_cp;                         // Pages in file
-            public ushort e_crlc;                       // Relocations
-            public ushort e_cparhdr;                    // Size of header in paragraphs
-            public ushort e_minalloc;                   // Minimum extra paragraphs needed
-            public ushort e_maxalloc;                   // Maximum extra paragraphs needed
-            public ushort e_ss;                         // Initial (relative) SS value
-            public ushort e_sp;                         // Initial SP value
-            public ushort e_csum;                       // Checksum
-            public ushort e_ip;                         // Initial IP value
-            public ushort e_cs;                         // Initial (relative) CS value
-            public ushort e_lfarlc;                     // File address of relocation table
-            public ushort e_ovno;                       // Overlay number
-            public fixed ushort e_res[4];               // Reserved ushorts
-            public ushort e_oemid;                      // OEM identifier (for e_oeminfo)
-            public ushort e_oeminfo;                    // OEM information; e_oemid specific
-            public fixed ushort e_res2[10];             // Reserved ushorts
-            public uint e_lfanew;                       // File address of new exe header
+            public ushort e_magic; // Magic number
+            public ushort e_cblp; // Bytes on last page of file
+            public ushort e_cp; // Pages in file
+            public ushort e_crlc; // Relocations
+            public ushort e_cparhdr; // Size of header in paragraphs
+            public ushort e_minalloc; // Minimum extra paragraphs needed
+            public ushort e_maxalloc; // Maximum extra paragraphs needed
+            public ushort e_ss; // Initial (relative) SS value
+            public ushort e_sp; // Initial SP value
+            public ushort e_csum; // Checksum
+            public ushort e_ip; // Initial IP value
+            public ushort e_cs; // Initial (relative) CS value
+            public ushort e_lfarlc; // File address of relocation table
+            public ushort e_ovno; // Overlay number
+            public fixed ushort e_res[4]; // Reserved ushorts
+            public ushort e_oemid; // OEM identifier (for e_oeminfo)
+            public ushort e_oeminfo; // OEM information; e_oemid specific
+            public fixed ushort e_res2[10]; // Reserved ushorts
+            public uint e_lfanew; // File address of new exe header
         }
 
         #endregion
@@ -1814,15 +1871,16 @@ namespace Engine.ProcessCore
         }
 
         #endregion
+
         #endregion
 
         #region Constants
 
-        public const uint IMAGE_DOS_SIGNATURE = 0x5A4D;      // MZ
-        public const uint IMAGE_OS2_SIGNATURE = 0x454E;      // NE
-        public const uint IMAGE_OS2_SIGNATURE_LE = 0x454C;      // LE
-        public const uint IMAGE_VXD_SIGNATURE = 0x454C;      // LE
-        public const uint IMAGE_NT_SIGNATURE = 0x00004550;  // PE00
+        public const uint IMAGE_DOS_SIGNATURE = 0x5A4D; // MZ
+        public const uint IMAGE_OS2_SIGNATURE = 0x454E; // NE
+        public const uint IMAGE_OS2_SIGNATURE_LE = 0x454C; // LE
+        public const uint IMAGE_VXD_SIGNATURE = 0x454C; // LE
+        public const uint IMAGE_NT_SIGNATURE = 0x00004550; // PE00
 
         public const int IMAGE_SIZEOF_SHORT_NAME = 8;
 
@@ -1831,20 +1889,25 @@ namespace Engine.ProcessCore
         public const ulong IMAGE_ORDINAL_FLAG64 = 0x8000000000000000;
         public const uint IMAGE_ORDINAL_FLAG32 = 0x80000000;
 
-        public const uint IMAGE_SCN_TYPE_NO_PAD = 0x00000008;  // Reserved.
+        public const uint IMAGE_SCN_TYPE_NO_PAD = 0x00000008; // Reserved.
 
-        public const uint IMAGE_SCN_CNT_CODE = 0x00000020;  // Section contains code.
-        public const uint IMAGE_SCN_CNT_INITIALIZED_DATA = 0x00000040;  // Section contains initialized data.
-        public const uint IMAGE_SCN_CNT_UNINITIALIZED_DATA = 0x00000080;  // Section contains uninitialized data.
+        public const uint IMAGE_SCN_CNT_CODE = 0x00000020; // Section contains code.
+        public const uint IMAGE_SCN_CNT_INITIALIZED_DATA = 0x00000040; // Section contains initialized data.
+        public const uint IMAGE_SCN_CNT_UNINITIALIZED_DATA = 0x00000080; // Section contains uninitialized data.
 
-        public const uint IMAGE_SCN_LNK_OTHER = 0x00000100;  // Reserved.
-        public const uint IMAGE_SCN_LNK_INFO = 0x00000200;  // Section contains comments or some other type of information.
+        public const uint IMAGE_SCN_LNK_OTHER = 0x00000100; // Reserved.
 
-        public const uint IMAGE_SCN_LNK_REMOVE = 0x00000800;  // Section contents will not become part of image.
-        public const uint IMAGE_SCN_LNK_COMDAT = 0x00001000;  // Section contents comdat.
+        public const uint
+            IMAGE_SCN_LNK_INFO = 0x00000200; // Section contains comments or some other type of information.
 
-        public const uint IMAGE_SCN_NO_DEFER_SPEC_EXC = 0x00004000;  // Reset speculative exceptions handling bits in the TLB entries for this section.
-        public const uint IMAGE_SCN_GPREL = 0x00008000;  // Section content can be accessed relative to GP
+        public const uint IMAGE_SCN_LNK_REMOVE = 0x00000800; // Section contents will not become part of image.
+        public const uint IMAGE_SCN_LNK_COMDAT = 0x00001000; // Section contents comdat.
+
+        public const uint
+            IMAGE_SCN_NO_DEFER_SPEC_EXC =
+                0x00004000; // Reset speculative exceptions handling bits in the TLB entries for this section.
+
+        public const uint IMAGE_SCN_GPREL = 0x00008000; // Section content can be accessed relative to GP
         public const uint IMAGE_SCN_MEM_FARDATA = 0x00008000;
 
         public const uint IMAGE_SCN_MEM_PURGEABLE = 0x00020000;
@@ -1852,31 +1915,33 @@ namespace Engine.ProcessCore
         public const uint IMAGE_SCN_MEM_LOCKED = 0x00040000;
         public const uint IMAGE_SCN_MEM_PRELOAD = 0x00080000;
 
-        public const uint IMAGE_SCN_ALIGN_1BYTES = 0x00100000;  //
-        public const uint IMAGE_SCN_ALIGN_2BYTES = 0x00200000;  //
-        public const uint IMAGE_SCN_ALIGN_4BYTES = 0x00300000;  //
-        public const uint IMAGE_SCN_ALIGN_8BYTES = 0x00400000;  //
-        public const uint IMAGE_SCN_ALIGN_16BYTES = 0x00500000;  // Default alignment if no others are specified.
-        public const uint IMAGE_SCN_ALIGN_32BYTES = 0x00600000;  //
-        public const uint IMAGE_SCN_ALIGN_64BYTES = 0x00700000;  //
-        public const uint IMAGE_SCN_ALIGN_128BYTES = 0x00800000;  //
-        public const uint IMAGE_SCN_ALIGN_256BYTES = 0x00900000;  //
-        public const uint IMAGE_SCN_ALIGN_512BYTES = 0x00A00000;  //
-        public const uint IMAGE_SCN_ALIGN_1024BYTES = 0x00B00000;  //
-        public const uint IMAGE_SCN_ALIGN_2048BYTES = 0x00C00000;  //
-        public const uint IMAGE_SCN_ALIGN_4096BYTES = 0x00D00000;  //
-        public const uint IMAGE_SCN_ALIGN_8192BYTES = 0x00E00000;  //
+        public const uint IMAGE_SCN_ALIGN_1BYTES = 0x00100000; //
+        public const uint IMAGE_SCN_ALIGN_2BYTES = 0x00200000; //
+        public const uint IMAGE_SCN_ALIGN_4BYTES = 0x00300000; //
+        public const uint IMAGE_SCN_ALIGN_8BYTES = 0x00400000; //
+        public const uint IMAGE_SCN_ALIGN_16BYTES = 0x00500000; // Default alignment if no others are specified.
+        public const uint IMAGE_SCN_ALIGN_32BYTES = 0x00600000; //
+        public const uint IMAGE_SCN_ALIGN_64BYTES = 0x00700000; //
+        public const uint IMAGE_SCN_ALIGN_128BYTES = 0x00800000; //
+        public const uint IMAGE_SCN_ALIGN_256BYTES = 0x00900000; //
+        public const uint IMAGE_SCN_ALIGN_512BYTES = 0x00A00000; //
+        public const uint IMAGE_SCN_ALIGN_1024BYTES = 0x00B00000; //
+        public const uint IMAGE_SCN_ALIGN_2048BYTES = 0x00C00000; //
+        public const uint IMAGE_SCN_ALIGN_4096BYTES = 0x00D00000; //
+
+        public const uint IMAGE_SCN_ALIGN_8192BYTES = 0x00E00000; //
+
         // Unused                                    0x00F00000;
         public const uint IMAGE_SCN_ALIGN_MASK = 0x00F00000;
 
-        public const uint IMAGE_SCN_LNK_NRELOC_OVFL = 0x01000000;  // Section contains extended relocations.
-        public const uint IMAGE_SCN_MEM_DISCARDABLE = 0x02000000;  // Section can be discarded.
-        public const uint IMAGE_SCN_MEM_NOT_CACHED = 0x04000000;  // Section is not cachable.
-        public const uint IMAGE_SCN_MEM_NOT_PAGED = 0x08000000;  // Section is not pageable.
-        public const uint IMAGE_SCN_MEM_SHARED = 0x10000000;  // Section is shareable.
-        public const uint IMAGE_SCN_MEM_EXECUTE = 0x20000000;  // Section is executable.
-        public const uint IMAGE_SCN_MEM_READ = 0x40000000;  // Section is readable.
-        public const uint IMAGE_SCN_MEM_WRITE = 0x80000000;  // Section is writeable.
+        public const uint IMAGE_SCN_LNK_NRELOC_OVFL = 0x01000000; // Section contains extended relocations.
+        public const uint IMAGE_SCN_MEM_DISCARDABLE = 0x02000000; // Section can be discarded.
+        public const uint IMAGE_SCN_MEM_NOT_CACHED = 0x04000000; // Section is not cachable.
+        public const uint IMAGE_SCN_MEM_NOT_PAGED = 0x08000000; // Section is not pageable.
+        public const uint IMAGE_SCN_MEM_SHARED = 0x10000000; // Section is shareable.
+        public const uint IMAGE_SCN_MEM_EXECUTE = 0x20000000; // Section is executable.
+        public const uint IMAGE_SCN_MEM_READ = 0x40000000; // Section is readable.
+        public const uint IMAGE_SCN_MEM_WRITE = 0x80000000; // Section is writeable.
 
         public const uint PAGE_NOACCESS = 0x01;
         public const uint PAGE_READONLY = 0x02;
@@ -1919,21 +1984,21 @@ namespace Engine.ProcessCore
 
         // Directory Entries
 
-        public const int IMAGE_DIRECTORY_ENTRY_EXPORT = 0;   // Export Directory
-        public const int IMAGE_DIRECTORY_ENTRY_IMPORT = 1;   // Import Directory
-        public const int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2;   // Resource Directory
-        public const int IMAGE_DIRECTORY_ENTRY_EXCEPTION = 3;   // Exception Directory
-        public const int IMAGE_DIRECTORY_ENTRY_SECURITY = 4;   // Security Directory
-        public const int IMAGE_DIRECTORY_ENTRY_BASERELOC = 5;   // Base Relocation Table
-        public const int IMAGE_DIRECTORY_ENTRY_DEBUG = 6;   // Debug Directory
-        public const int IMAGE_DIRECTORY_ENTRY_ARCHITECTURE = 7;   // Architecture Specific Data
-        public const int IMAGE_DIRECTORY_ENTRY_GLOBALPTR = 8;   // RVA of GP
-        public const int IMAGE_DIRECTORY_ENTRY_TLS = 9;   // TLS Directory
-        public const int IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG = 10;   // Load Configuration Directory
-        public const int IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT = 11;   // Bound Import Directory in headers
-        public const int IMAGE_DIRECTORY_ENTRY_IAT = 12;   // Import Address Table
-        public const int IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT = 13;   // Delay Load Import Descriptors
-        public const int IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR = 14;   // COM Runtime descriptor
+        public const int IMAGE_DIRECTORY_ENTRY_EXPORT = 0; // Export Directory
+        public const int IMAGE_DIRECTORY_ENTRY_IMPORT = 1; // Import Directory
+        public const int IMAGE_DIRECTORY_ENTRY_RESOURCE = 2; // Resource Directory
+        public const int IMAGE_DIRECTORY_ENTRY_EXCEPTION = 3; // Exception Directory
+        public const int IMAGE_DIRECTORY_ENTRY_SECURITY = 4; // Security Directory
+        public const int IMAGE_DIRECTORY_ENTRY_BASERELOC = 5; // Base Relocation Table
+        public const int IMAGE_DIRECTORY_ENTRY_DEBUG = 6; // Debug Directory
+        public const int IMAGE_DIRECTORY_ENTRY_ARCHITECTURE = 7; // Architecture Specific Data
+        public const int IMAGE_DIRECTORY_ENTRY_GLOBALPTR = 8; // RVA of GP
+        public const int IMAGE_DIRECTORY_ENTRY_TLS = 9; // TLS Directory
+        public const int IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG = 10; // Load Configuration Directory
+        public const int IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT = 11; // Bound Import Directory in headers
+        public const int IMAGE_DIRECTORY_ENTRY_IAT = 12; // Import Address Table
+        public const int IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT = 13; // Delay Load Import Descriptors
+        public const int IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR = 14; // COM Runtime descriptor
 
         public const int IMAGE_REL_BASED_ABSOLUTE = 0;
         public const int IMAGE_REL_BASED_HIGH = 1;

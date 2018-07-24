@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Engine.ProcessCore;
 
 namespace Engine.Extensions
@@ -34,13 +30,13 @@ namespace Engine.Extensions
 
     public static class QuickExt
     {
-        static Logger log = new Logger(LoggerType.Console_File, "Extensions");
+        private static readonly Logger log = new Logger(LoggerType.Console_File, "Extensions");
 
 
         public static string GetHash(byte[] toGetHashFrom, HashType hType)
         {
             byte[] hashed = null;
-            string hashedHex = String.Empty;
+            var hashedHex = string.Empty;
             switch (hType)
             {
                 case HashType.MD5:
@@ -74,9 +70,9 @@ namespace Engine.Extensions
 
         public static bool ParseFromString(this string toParseFrom)
         {
-            if (toParseFrom == "1" | toParseFrom.ToLower() == "true")
+            if ((toParseFrom == "1") | (toParseFrom.ToLower() == "true"))
                 return true;
-            if (toParseFrom == "0" | toParseFrom.ToLower() == "false")
+            if ((toParseFrom == "0") | (toParseFrom.ToLower() == "false"))
                 return false;
 
             log.Log(LogType.Warning, "Parsed string is not a valid string: {0}{1}Only valid is: 1 or TRUE, 0 or FALSE",

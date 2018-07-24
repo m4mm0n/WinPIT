@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace Engine
 {
@@ -24,11 +25,11 @@ namespace Engine
 
     public class Logger : IDisposable
     {
-        private LoggerType loggerType;
-        private string datetimeFormat;
-        private string logFilename;
-        private string logOwner;
-        private bool useVerbose;
+        private readonly string datetimeFormat;
+        private readonly string logFilename;
+        private readonly LoggerType loggerType;
+        private readonly string logOwner;
+        private readonly bool useVerbose;
 
         public Logger(LoggerType loggingType, string loggerOwner = null, bool isVerbose = false)
         {
@@ -36,7 +37,7 @@ namespace Engine
             logOwner = loggerOwner ?? "";
             useVerbose = isVerbose;
 
-            if (loggingType == LoggerType.File | loggingType == LoggerType.Console_File)
+            if ((loggingType == LoggerType.File) | (loggingType == LoggerType.Console_File))
             {
                 if (!Directory.Exists("\\LOGS\\"))
                     Directory.CreateDirectory("LOGS");
@@ -44,22 +45,26 @@ namespace Engine
                 datetimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
                 logFilename = "LOGS\\" + loggerOwner + ".log";
 
-                string logHeader = " __      __.__      __________.______________" + Environment.NewLine +
-                                   @"/  \    /  \__| ____\______   \   \__    ___/" + Environment.NewLine +
-                                   @"\   \/\/   /  |/    \|     ___/   | |    |   " + Environment.NewLine +
-                                   @" \        /|  |   |  \    |   |   | |    |   " + Environment.NewLine +
-                                   @"  \__/\  / |__|___|  /____|   |___| |____|   " + Environment.NewLine +
-                                   @"       \/          \/                        " + Environment.NewLine +
-                                   "     [Windows Process Injection Toolkit]     " + Environment.NewLine + Environment.NewLine;
-                if (!System.IO.File.Exists(logFilename))
-                {
+                var logHeader = " __      __.__      __________.______________" + Environment.NewLine +
+                                @"/  \    /  \__| ____\______   \   \__    ___/" + Environment.NewLine +
+                                @"\   \/\/   /  |/    \|     ___/   | |    |   " + Environment.NewLine +
+                                @" \        /|  |   |  \    |   |   | |    |   " + Environment.NewLine +
+                                @"  \__/\  / |__|___|  /____|   |___| |____|   " + Environment.NewLine +
+                                @"       \/          \/                        " + Environment.NewLine +
+                                "     [Windows Process Injection Toolkit]     " + Environment.NewLine +
+                                Environment.NewLine;
+                if (!File.Exists(logFilename))
                     WriteLine(logHeader, false);
-                }
                 else
-                {
-                    WriteLine(Environment.NewLine + Environment.NewLine + "[START NEW LOGGING PROCESS: " + DateTime.Now.ToString(datetimeFormat) + "]" + Environment.NewLine);
-                }
+                    WriteLine(Environment.NewLine + Environment.NewLine + "[START NEW LOGGING PROCESS: " +
+                              DateTime.Now.ToString(datetimeFormat) + "]" + Environment.NewLine);
             }
+        }
+
+        public void Dispose()
+        {
+            if ((loggerType == LoggerType.File) | (loggerType == LoggerType.Console_File))
+                WriteLine("[END OF LOG]" + Environment.NewLine + Environment.NewLine);
         }
 
         public void Log(LogType lType, string format, params object[] args)
@@ -74,14 +79,14 @@ namespace Engine
 
         public void Log(Exception exception, string format, params object[] args)
         {
-            string ex = $"Exception: {exception.ToString()}\r\n";
+            var ex = $"Exception: {exception}\r\n";
             Log(LogType.Exception, ex + format, args);
         }
 
         /// <summary>
-        /// Logs the input
-        /// Using <see cref="System.Diagnostics.Debug"/> to print directly
-        /// to the debugger aswell...
+        ///     Logs the input
+        ///     Using <see cref="System.Diagnostics.Debug" /> to print directly
+        ///     to the debugger aswell...
         /// </summary>
         /// <param name="format">Pre-formatted text</param>
         /// <param name="args">Optionally set arguments if formatted characters is used</param>
@@ -92,80 +97,88 @@ namespace Engine
         }
 
 
-        void WriteFormattedLog(LogType level, string text)
+        private void WriteFormattedLog(LogType level, string text)
         {
             switch (loggerType)
             {
                 case LoggerType.Console:
-                    if(level == LogType.Debug | level == LogType.Exception)
+                    if ((level == LogType.Debug) | (level == LogType.Exception))
                     {
                         if (useVerbose)
                             WriteConsole(level, text);
                     }
                     else
+                    {
                         WriteConsole(level, text);
+                    }
+
                     break;
                 case LoggerType.File:
                     WriteFile(level, text);
                     break;
                 case LoggerType.Console_File:
-                    if (level == LogType.Debug | level == LogType.Exception)
+                    if ((level == LogType.Debug) | (level == LogType.Exception))
                     {
                         if (useVerbose)
                             WriteConsole(level, text);
                     }
                     else
+                    {
                         WriteConsole(level, text);
+                    }
 
                     WriteFile(level, text);
                     break;
             }
         }
-        void WriteFile(LogType level, string text)
+
+        private void WriteFile(LogType level, string text)
         {
             string pretext;
 
             switch (level)
             {
                 case LogType.Normal:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [INFO]    ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [INFO]    ";
                     break;
                 case LogType.Debug:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [DEBUG]   ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [DEBUG]   ";
                     break;
                 case LogType.Warning:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [WARNING] ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [WARNING] ";
                     break;
                 case LogType.Error:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [ERROR]   ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [ERROR]   ";
                     break;
                 case LogType.Critical:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [CRITICAL]   ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [CRITICAL]   ";
                     break;
                 case LogType.Exception:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [EXCEPTION]   ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [EXCEPTION]   ";
                     break;
                 case LogType.Failure:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [FAILURE]   ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [FAILURE]   ";
                     break;
                 case LogType.Success:
-                    pretext = System.DateTime.Now.ToString(datetimeFormat) + " [SUCCESS]   ";
+                    pretext = DateTime.Now.ToString(datetimeFormat) + " [SUCCESS]   ";
                     break;
                 default:
                     pretext = "";
                     break;
             }
+
             WriteLine(pretext + text);
         }
-        void WriteConsole(LogType level, string text)
+
+        private void WriteConsole(LogType level, string text)
         {
-            ConsoleColor orgCol = Console.ForegroundColor;
+            var orgCol = Console.ForegroundColor;
 
             switch (level)
             {
                 case LogType.Success:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -181,7 +194,7 @@ namespace Engine
                     break;
                 case LogType.Normal:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -194,7 +207,7 @@ namespace Engine
                     break;
                 case LogType.Warning:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -210,7 +223,7 @@ namespace Engine
                     break;
                 case LogType.Critical:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -226,7 +239,7 @@ namespace Engine
                     break;
                 case LogType.Debug:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -242,7 +255,7 @@ namespace Engine
                     break;
                 case LogType.Error:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -258,7 +271,7 @@ namespace Engine
                     break;
                 case LogType.Exception:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -274,7 +287,7 @@ namespace Engine
                     break;
                 case LogType.Failure:
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(System.DateTime.Now.ToString(datetimeFormat));
+                    Console.Write(DateTime.Now.ToString(datetimeFormat));
                     Console.ForegroundColor = orgCol;
                     Console.Write(" (");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -290,28 +303,20 @@ namespace Engine
                     break;
             }
         }
-        void WriteLine(string text, bool append = true)
+
+        private void WriteLine(string text, bool append = true)
         {
             try
             {
-                using (System.IO.StreamWriter writer = new System.IO.StreamWriter(logFilename, append, System.Text.Encoding.UTF8))
+                using (var writer = new StreamWriter(logFilename, append, Encoding.UTF8))
                 {
-                    if (text != "")
-                    {
-                        writer.WriteLine(text);
-                    }
+                    if (text != "") writer.WriteLine(text);
                 }
             }
             catch
             {
                 //throw;
             }
-        }
-
-        public void Dispose()
-        {
-            if (loggerType == LoggerType.File | loggerType == LoggerType.Console_File)
-                WriteLine("[END OF LOG]" + Environment.NewLine + Environment.NewLine);
         }
     }
 }

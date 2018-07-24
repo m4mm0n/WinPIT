@@ -9,41 +9,10 @@ namespace Engine.Assembly
 {
     public class ImportExportReader
     {
-        private WindowsAssembly wasm;
-        private PeFile pef = null;
         private Core hProc;
-        private Logger log;
-
-        public IEnumerable<string> Imports => getImports();
-        public Dictionary<string, IntPtr> Exports => getExports();
-
-        IEnumerable<string> getImports()
-        {
-            var m = new List<string>();
-            if (pef.ImportedFunctions != null)
-            {
-                foreach (var imp in pef.ImportedFunctions)
-                {
-                    m.Add(imp.Name);
-                }
-            }
-
-            return m;
-        }
-
-        Dictionary<string, IntPtr> getExports()
-        {
-            var m = new Dictionary<string, IntPtr>();
-            if (pef.ExportedFunctions != null)
-            {
-                foreach (var exp in pef.ExportedFunctions)
-                {
-                    m.Add(exp.Name, new IntPtr(exp.Address));
-                }
-            }
-
-            return m;
-        }
+        private readonly Logger log;
+        private readonly PeFile pef;
+        private WindowsAssembly wasm;
 
         public ImportExportReader(Core process)
         {
@@ -84,6 +53,29 @@ namespace Engine.Assembly
                 log.Log(LogType.Failure, "Failed to read the PE header: {0}",
                     Marshal.GetLastWin32Error().ToString("X"));
             }
+        }
+
+        public IEnumerable<string> Imports => getImports();
+        public Dictionary<string, IntPtr> Exports => getExports();
+
+        private IEnumerable<string> getImports()
+        {
+            var m = new List<string>();
+            if (pef.ImportedFunctions != null)
+                foreach (var imp in pef.ImportedFunctions)
+                    m.Add(imp.Name);
+
+            return m;
+        }
+
+        private Dictionary<string, IntPtr> getExports()
+        {
+            var m = new Dictionary<string, IntPtr>();
+            if (pef.ExportedFunctions != null)
+                foreach (var exp in pef.ExportedFunctions)
+                    m.Add(exp.Name, new IntPtr(exp.Address));
+
+            return m;
         }
     }
 }

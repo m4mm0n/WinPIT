@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Engine;
 using Engine.Extensions;
+using MetroFramework.Forms;
 
 namespace THANOS
 {
@@ -20,12 +17,14 @@ namespace THANOS
         Drive
     }
 
-    public partial class frmOpenFile : MetroFramework.Forms.MetroForm
+    public partial class frmOpenFile : MetroForm
     {
-        private Logger log;
-        private string startupPath;
+        private readonly Logger log;
         private OpenType openType;
-        private bool useMultiSelect = false;
+
+        private readonly SystemIconsImageList siil = new SystemIconsImageList();
+        private string startupPath;
+        private bool useMultiSelect;
 
         public frmOpenFile(string startPath = "", OpenType oType = OpenType.File, bool MultiFileSelect = false)
         {
@@ -40,31 +39,28 @@ namespace THANOS
             switch (oType)
             {
                 case OpenType.File:
-                    this.Size = new Size(/*637; 416*/637, 416);
-                    this.Text = "Open File";
+                    Size = new Size( /*637; 416*/637, 416);
+                    Text = "Open File";
                     btnDrive.Enabled = false;
                     btnSelDir.Enabled = false;
                     break;
                 case OpenType.Folder:
-                    this.Size = new Size(/*637; 416*/343, 416);
-                    this.Text = "Open Folder";
+                    Size = new Size( /*637; 416*/343, 416);
+                    Text = "Open Folder";
                     btnDrive.Enabled = false;
                     break;
                 case OpenType.Drive:
-                    this.Size = new Size(/*637; 416*/115, 416);
-                    this.Text = "";
+                    Size = new Size( /*637; 416*/115, 416);
+                    Text = "";
                     break;
             }
         }
-
-        SystemIconsImageList siil = new SystemIconsImageList();
 
         private void frmOpenFile_Load(object sender, EventArgs e)
         {
             var hardDrives = DriveInfo.GetDrives();
             tvDrives.ImageList = imgDrives;
             foreach (var drive in hardDrives)
-            {
                 switch (drive.DriveType)
                 {
                     case DriveType.CDRom:
@@ -83,7 +79,6 @@ namespace THANOS
                         tvDrives.Nodes.Add(drive.Name, drive.Name, 1);
                         break;
                 }
-            }
 
             tvFolder.ImageList = imgFolder;
             tvFiles.ImageList = siil.SmallIconsImageList;
@@ -105,14 +100,11 @@ namespace THANOS
             {
                 tvFiles.Nodes.Clear();
                 if (Directory.Exists(e.Node.Tag.ToString()))
-                {
                     try
                     {
                         var files = Directory.GetFiles(e.Node.Tag.ToString());
                         foreach (var fil in files)
-                        {
                             tvFiles.Nodes.Add(fil, Path.GetFileName(fil), siil.GetIconIndex(fil));
-                        }
                     }
                     catch (AccessViolationException ave)
                     {
@@ -122,16 +114,15 @@ namespace THANOS
                     {
                         log.Log(uae, "Unauthorized to access {0}", e.Node.Tag.ToString());
                     }
-                }
             }
         }
 
         private void TvFolder_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            TreeNode tn = e.Node.Nodes[0];
+            var tn = e.Node.Nodes[0];
             if (tn.Text == "...")
             {
-                e.Node.Nodes.AddRange(getFolderNodes(((DirectoryInfo)e.Node.Tag)
+                e.Node.Nodes.AddRange(getFolderNodes(((DirectoryInfo) e.Node.Tag)
                     .FullName, false).ToArray());
                 if (tn.Text == "...") tn.Parent.Nodes.Remove(tn);
             }
@@ -160,28 +151,36 @@ namespace THANOS
                 //    {
                 //        Console.WriteLine(exception);
                 //    }
-                    
+
                 //}
                 tvDrives.SelectedNode = e.Node;
             }
         }
 
-        List<TreeNode> getFolderNodes(string dir, bool expanded)
+        private List<TreeNode> getFolderNodes(string dir, bool expanded)
         {
             var dirs = Directory.GetDirectories(dir).ToArray();
             var nodes = new List<TreeNode>();
-            foreach (string d in dirs)
+            foreach (var d in dirs)
             {
-                DirectoryInfo di = new DirectoryInfo(d);
-                TreeNode tn = new TreeNode(di.Name, 0,0);
+                var di = new DirectoryInfo(d);
+                var tn = new TreeNode(di.Name, 0, 0);
                 tn.Tag = di;
-                int subCount = 0;
-                try { subCount = Directory.GetDirectories(d).Count(); }
-                catch { /* ignore accessdenied */  }
+                var subCount = 0;
+                try
+                {
+                    subCount = Directory.GetDirectories(d).Count();
+                }
+                catch
+                {
+                    /* ignore accessdenied */
+                }
+
                 if (subCount > 0) tn.Nodes.Add("...");
-                if (expanded) tn.Expand();   //  **
+                if (expanded) tn.Expand(); //  **
                 nodes.Add(tn);
             }
+
             return nodes;
         }
 
@@ -189,7 +188,6 @@ namespace THANOS
         {
             if (tvFiles.SelectedNode != null)
             {
-
             }
         }
     }

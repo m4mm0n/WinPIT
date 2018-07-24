@@ -13,43 +13,69 @@ namespace Injectors.SetThreadContext
 {
     public class Injector : IInjector
     {
-        private Logger log = new Logger(LoggerType.Console_File, "Injector.STC");
+        private readonly Logger log = new Logger(LoggerType.Console_File, "Injector.STC");
 
-        public string SelfFileName
+        private readonly byte[] shell32 =
         {
-            get { return Path.GetFileName(Assembly.GetExecutingAssembly().Location); }
-        }
+            //pushad
+            0x60,
+            //push 11111111h
+            0x68, 0x11, 0x11, 0x11, 0x11,
+            //mov eax, 22222222h
+            0xb8, 0x22, 0x22, 0x22, 0x22,
+            //call eax
+            0xff, 0xd0,
+            //popad
+            0x61,
+            //push 33333333h
+            0x68, 0x33, 0x33, 0x33, 0x33,
+            //ret
+            0xc3
+        };
 
-        public string UniqueId
+        private readonly byte[] shell64 =
         {
-            get
-            {
-                return "Injectors.STC-" + QuickExt.GetHash(
-                           Encoding.UTF8.GetBytes(UniqueName +
-                                                  Marshal.GetTypeLibGuidForAssembly(Assembly.GetExecutingAssembly())
-                                                      .ToString()), HashType.MD5);
-            }
-        }
+            // sub rsp, 28h
+            0x48, 0x83, 0xec, 0x28,
+            // mov [rsp + 18], rax
+            0x48, 0x89, 0x44, 0x24, 0x18,
+            // mov [rsp + 10h], rcx
+            0x48, 0x89, 0x4c, 0x24, 0x10,
+            // mov rcx, 11111111111111111h
+            0x48, 0xb9, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+            // mov rax, 22222222222222222h
+            0x48, 0xb8, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22,
+            // call rax
+            0xff, 0xd0,
+            // mov rcx, [rsp + 10h]
+            0x48, 0x8b, 0x4c, 0x24, 0x10,
+            // mov rax, [rsp + 18h]
+            0x48, 0x8b, 0x44, 0x24, 0x18,
+            // add rsp, 28h
+            0x48, 0x83, 0xc4, 0x28,
+            // mov r11, 333333333333333333h
+            0x49, 0xbb, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+            // jmp r11
+            0x41, 0xff, 0xe3
+        };
 
-        public string UniqueName
-        {
-            get { return "Injection by SetThreadContext API"; }
-        }
+        public string SelfFileName => Path.GetFileName(Assembly.GetExecutingAssembly().Location);
 
-        public string About
-        {
-            get
-            {
-                return
-                    "API: SetThreadContext" + Environment.NewLine +
-                    "DLL: kernel32.dll" + Environment.NewLine + Environment.NewLine +
-                    "Stealth: None" + Environment.NewLine +
-                    "Kernel/System/Normal Access: Normal" + Environment.NewLine +
-                    "Original Author: https://github.com/zodiacon/DllInjectionWithThreadContext"
-                    ;
-            }
-        }
+        public string UniqueId => "Injectors.STC-" + QuickExt.GetHash(
+                                      Encoding.UTF8.GetBytes(UniqueName +
+                                                             Marshal.GetTypeLibGuidForAssembly(
+                                                                 Assembly.GetExecutingAssembly())), HashType.MD5);
+
+        public string UniqueName => "Injection by SetThreadContext API";
+
+        public string About => "API: SetThreadContext" + Environment.NewLine +
+                               "DLL: kernel32.dll" + Environment.NewLine + Environment.NewLine +
+                               "Stealth: None" + Environment.NewLine +
+                               "Kernel/System/Normal Access: Normal" + Environment.NewLine +
+                               "Original Author: https://github.com/zodiacon/DllInjectionWithThreadContext";
+
         public Module InjectedModule { get; set; }
+
         public IntPtr Inject(Core targetProcess, string filePath)
         {
             //Logger.StartLogger(Environment.UserInteractive ? LoggerType.Console : LoggerType.File, "Injector.STC");
@@ -62,6 +88,7 @@ namespace Injectors.SetThreadContext
                 log.Log(LogType.Error, "Cannot retrieve LoadLibraryA pointer - aborting!");
                 return IntPtr.Zero;
             }
+
             var pathBytes = Encoding.Unicode.GetBytes(filePath);
 
             var alloc = targetProcess.Allocate(pathBytes.Length);
@@ -77,8 +104,8 @@ namespace Injectors.SetThreadContext
                 return IntPtr.Zero;
             }
 
-            var code = (Environment.Is64BitProcess ? shell64 : shell32);
-            var hThread = Engine.ProcessCore.WinAPI.GetProcessThread(targetProcess.ProcessId);
+            var code = Environment.Is64BitProcess ? shell64 : shell32;
+            var hThread = WinAPI.GetProcessThread(targetProcess.ProcessId);
             if (hThread == IntPtr.Zero)
             {
                 log.Log(LogType.Error, "Unable to open process's main thread: {0} - aborting!",
@@ -89,7 +116,7 @@ namespace Injectors.SetThreadContext
             var page_size = 1 << 12;
             var buffer = targetProcess.Allocate(page_size);
 
-            if (!Engine.ProcessCore.WinAPI.SuspendThread(hThread))
+            if (!WinAPI.SuspendThread(hThread))
             {
                 log.Log(LogType.Error, "Unable to suspend thread: {0} - aborting!",
                     Marshal.GetLastWin32Error().ToString("X"));
@@ -98,10 +125,10 @@ namespace Injectors.SetThreadContext
 
             if (Environment.Is64BitProcess)
             {
-                var ctx = new Engine.ProcessCore.WinAPI.CONTEXT64();
-                ctx.ContextFlags = Engine.ProcessCore.WinAPI.CONTEXT_FLAGS.CONTEXT_FULL;
+                var ctx = new WinAPI.CONTEXT64();
+                ctx.ContextFlags = WinAPI.CONTEXT_FLAGS.CONTEXT_FULL;
 
-                if (!Engine.ProcessCore.WinAPI.GetThreadContext(hThread, ref ctx))
+                if (!WinAPI.GetThreadContext(hThread, ref ctx))
                 {
                     log.Log(LogType.Error, "Failed to retrieve thread's context: {0} - aborting!",
                         Marshal.GetLastWin32Error());
@@ -123,13 +150,13 @@ namespace Injectors.SetThreadContext
                     return IntPtr.Zero;
                 }
 
-                ctx.Rip = (ulong)alloc.ToInt64();
-                if (!Engine.ProcessCore.WinAPI.SetThreadContext(hThread, ref ctx))
+                ctx.Rip = (ulong) alloc.ToInt64();
+                if (!WinAPI.SetThreadContext(hThread, ref ctx))
                 {
                     log.Log(LogType.Failure, "Failed to set thread's context: {0}",
                         Marshal.GetLastWin32Error().ToString("X"));
 
-                    Engine.ProcessCore.WinAPI.ResumeThread(hThread);
+                    WinAPI.ResumeThread(hThread);
                     return IntPtr.Zero;
                 }
 
@@ -139,10 +166,10 @@ namespace Injectors.SetThreadContext
             }
             else
             {
-                var ctx = new Engine.ProcessCore.WinAPI.CONTEXT();
-                ctx.ContextFlags = Engine.ProcessCore.WinAPI.CONTEXT_FLAGS.CONTEXT_FULL;
+                var ctx = new WinAPI.CONTEXT();
+                ctx.ContextFlags = WinAPI.CONTEXT_FLAGS.CONTEXT_FULL;
 
-                if (!Engine.ProcessCore.WinAPI.GetThreadContext(hThread, ref ctx))
+                if (!WinAPI.GetThreadContext(hThread, ref ctx))
                 {
                     log.Log(LogType.Error, "Failed to retrieve thread's context: {0} - aborting!",
                         Marshal.GetLastWin32Error());
@@ -164,13 +191,13 @@ namespace Injectors.SetThreadContext
                     return IntPtr.Zero;
                 }
 
-                ctx.Eip = (uint)alloc.ToInt32();
-                if (!Engine.ProcessCore.WinAPI.SetThreadContext(hThread, ref ctx))
+                ctx.Eip = (uint) alloc.ToInt32();
+                if (!WinAPI.SetThreadContext(hThread, ref ctx))
                 {
                     log.Log(LogType.Failure, "Failed to set thread's context: {0}",
                         Marshal.GetLastWin32Error().ToString("X"));
 
-                    Engine.ProcessCore.WinAPI.ResumeThread(hThread);
+                    WinAPI.ResumeThread(hThread);
                     return IntPtr.Zero;
                 }
 
@@ -179,49 +206,5 @@ namespace Injectors.SetThreadContext
                 return hThread;
             }
         }
-
-        private byte[] shell64 =
-        {
-            // sub rsp, 28h
-            0x48, 0x83, 0xec, 0x28,                           
-            // mov [rsp + 18], rax
-            0x48, 0x89, 0x44, 0x24, 0x18,                     
-            // mov [rsp + 10h], rcx
-            0x48, 0x89, 0x4c, 0x24, 0x10,
-            // mov rcx, 11111111111111111h
-            0x48, 0xb9, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,     
-            // mov rax, 22222222222222222h
-            0x48, 0xb8, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22,
-            // call rax
-            0xff, 0xd0,
-            // mov rcx, [rsp + 10h]
-            0x48, 0x8b, 0x4c, 0x24, 0x10,
-            // mov rax, [rsp + 18h]
-            0x48, 0x8b, 0x44, 0x24, 0x18,
-            // add rsp, 28h
-            0x48, 0x83, 0xc4, 0x28,
-            // mov r11, 333333333333333333h
-            0x49, 0xbb, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-            // jmp r11
-            0x41, 0xff, 0xe3
-        };
-
-        private byte[] shell32 =
-        {
-            //pushad
-            0x60,
-            //push 11111111h
-            0x68, 0x11, 0x11, 0x11, 0x11,
-            //mov eax, 22222222h
-            0xb8, 0x22, 0x22, 0x22, 0x22,
-            //call eax
-            0xff, 0xd0,
-            //popad
-            0x61,
-            //push 33333333h
-            0x68, 0x33, 0x33, 0x33, 0x33,
-            //ret
-            0xc3
-        };
     }
 }

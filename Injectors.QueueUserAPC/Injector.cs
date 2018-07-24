@@ -13,44 +13,25 @@ namespace Injectors.QueueUserAPC
 {
     public class Injector : IInjector
     {
-        private Logger log = new Logger(LoggerType.Console_File, "Injector.QUA");
+        private readonly Logger log = new Logger(LoggerType.Console_File, "Injector.QUA");
 
-        public string SelfFileName
-        {
-            get { return Path.GetFileName(Assembly.GetExecutingAssembly().Location); }
-        }
+        public string SelfFileName => Path.GetFileName(Assembly.GetExecutingAssembly().Location);
 
-        public string UniqueId
-        {
-            get
-            {
-                return "Injectors.QUA-" + QuickExt.GetHash(
-                           Encoding.UTF8.GetBytes(UniqueName +
-                                                  Marshal.GetTypeLibGuidForAssembly(Assembly.GetExecutingAssembly())
-                                                      .ToString()), HashType.MD5);
-            }
-        }
+        public string UniqueId => "Injectors.QUA-" + QuickExt.GetHash(
+                                      Encoding.UTF8.GetBytes(UniqueName +
+                                                             Marshal.GetTypeLibGuidForAssembly(
+                                                                 Assembly.GetExecutingAssembly())), HashType.MD5);
 
-        public string UniqueName
-        {
-            get { return "Injection by QueueUserAPC API"; }
-        }
+        public string UniqueName => "Injection by QueueUserAPC API";
 
-        public string About
-        {
-            get
-            {
-                return
-                    "API: QueueUserAPC" + Environment.NewLine +
-                    "DLL: kernel32.dll" + Environment.NewLine + Environment.NewLine +
-                    "Stealth: None" + Environment.NewLine +
-                    "Kernel/System/Normal Access: Normal" + Environment.NewLine +
-                    "Original Author: https://github.com/LordNoteworthy/al-khaser"
-                    ;
-            }
-        }
+        public string About => "API: QueueUserAPC" + Environment.NewLine +
+                               "DLL: kernel32.dll" + Environment.NewLine + Environment.NewLine +
+                               "Stealth: None" + Environment.NewLine +
+                               "Kernel/System/Normal Access: Normal" + Environment.NewLine +
+                               "Original Author: https://github.com/LordNoteworthy/al-khaser";
 
         public Module InjectedModule { get; set; }
+
         public IntPtr Inject(Core targetProcess, string filePath)
         {
             //Logger.StartLogger(Environment.UserInteractive ? LoggerType.Console : LoggerType.File, "Injector.QUA");
@@ -63,6 +44,7 @@ namespace Injectors.QueueUserAPC
                 log.Log(LogType.Error, "Cannot retrieve LoadLibraryA pointer - aborting!");
                 return IntPtr.Zero;
             }
+
             var pathBytes = Encoding.Unicode.GetBytes(filePath);
 
             var alloc = targetProcess.Allocate(pathBytes.Length);
@@ -79,10 +61,10 @@ namespace Injectors.QueueUserAPC
             }
 
             uint dwThreadId = 0;
-            IntPtr hThread = IntPtr.Zero;
-            dwThreadId = Engine.ProcessCore.WinAPI.GetProcessThreadId(targetProcess.ProcessId, hThread);
+            var hThread = IntPtr.Zero;
+            dwThreadId = WinAPI.GetProcessThreadId(targetProcess.ProcessId, hThread);
 
-            var dResult = Engine.ProcessCore.WinAPI.QueueUserAPC(loadLib, hThread, alloc);
+            var dResult = WinAPI.QueueUserAPC(loadLib, hThread, alloc);
             if (dResult == 0)
             {
                 log.Log(LogType.Error, "Failed to QueueUserAPC: {0}", Marshal.GetLastWin32Error().ToString("X"));
@@ -90,7 +72,7 @@ namespace Injectors.QueueUserAPC
             }
 
             log.Log(LogType.Success, "Injection through QueueUserAPC was a success - opened thread: 0x{0}",
-                (Environment.Is64BitProcess ? hThread.ToInt64().ToString("X16") : hThread.ToInt32().ToString("X8")));
+                Environment.Is64BitProcess ? hThread.ToInt64().ToString("X16") : hThread.ToInt32().ToString("X8"));
             return hThread;
         }
     }

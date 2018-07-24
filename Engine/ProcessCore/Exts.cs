@@ -29,8 +29,9 @@ namespace Engine.ProcessCore
             // HELPER FUNCTION TO FIND IMAGES
             string SearchDirectoryForImage(string directoryPath)
             {
-                foreach (string imagePath in Directory.GetFiles(directoryPath, "*.dll"))
-                    if (String.Equals(Path.GetFileName(imagePath), imageName, StringComparison.InvariantCultureIgnoreCase))
+                foreach (var imagePath in Directory.GetFiles(directoryPath, "*.dll"))
+                    if (string.Equals(Path.GetFileName(imagePath), imageName,
+                        StringComparison.InvariantCultureIgnoreCase))
                         return imagePath;
 
                 return null;
@@ -39,19 +40,23 @@ namespace Engine.ProcessCore
 
         public static unsafe T GetStructure<T>(byte[] bytes) where T : struct
         {
-            T structure = new T();
+            var structure = new T();
             fixed (byte* pByte = &bytes[0])
+            {
                 Unsafe.Copy(ref structure, pByte);
+            }
 
             return structure;
         }
 
         public static unsafe byte[] GetBytes<T>(T structure) where T : struct
         {
-            byte[] arr = new byte[Unsafe.SizeOf<T>()];
+            var arr = new byte[Unsafe.SizeOf<T>()];
 
             fixed (byte* pByte = &arr[0])
+            {
                 Unsafe.Copy(pByte, ref structure);
+            }
 
             return arr;
         }
@@ -61,22 +66,19 @@ namespace Engine.ProcessCore
             var sourceRef = __makeref(source);
             var dest = default(TDest);
             var destRef = __makeref(dest);
-            *(IntPtr*)&destRef = *(IntPtr*)&sourceRef;
+            *(IntPtr*) &destRef = *(IntPtr*) &sourceRef;
             return __refvalue(destRef, TDest);
         }
 
         public static string BytesToReadableValue(this long number)
         {
-            List<string> suffixes = new List<string> { " B", " KB", " MB", " GB", " TB", " PB" };
+            var suffixes = new List<string> {" B", " KB", " MB", " GB", " TB", " PB"};
 
-            for (int i = 0; i < suffixes.Count; i++)
+            for (var i = 0; i < suffixes.Count; i++)
             {
-                long temp = number / (int)Math.Pow(1024, i + 1);
+                var temp = number / (int) Math.Pow(1024, i + 1);
 
-                if (temp == 0)
-                {
-                    return (number / (int)Math.Pow(1024, i)) + suffixes[i];
-                }
+                if (temp == 0) return number / (int) Math.Pow(1024, i) + suffixes[i];
             }
 
             return number.ToString();
