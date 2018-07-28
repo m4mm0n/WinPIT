@@ -86,6 +86,8 @@ namespace THANOS
             renderProcessesOnListView();
         }
 
+        private object threadLock = new object();
+
         /// <summary>
         ///     This method renders all the processes of Windows on a ListView with some values and icons.
         /// </summary>
@@ -107,64 +109,67 @@ namespace THANOS
 
                 // Loop through the array of processes to show information of every process in your console
                 foreach (var process in processList)
-                    try
+                    lock (threadLock)
                     {
-                        //log.Log("Trying to read from Process ID: {0}", process.Id.ToString("X"));
-                        // Define the status from a boolean to a simple string
-                        var status = process.Responding ? "Responding" : "Not responding";
-
-                        // Retrieve the object of extra information of the process (to retrieve Username and Description)
-                        //dynamic extraProcessInfo = GetProcessExtraInformation(process.Id);
-
-                        // Create an array of string that will store the information to display in our 
-                        string[] row =
-                        {
-                            // 1 Process name
-                            process.ProcessName,
-                            // 2 Process ID
-                            process.Id.ToString(),
-                            // 3 Process status
-                            status,
-                            // 4 Username that started the process
-                            "?", //extraProcessInfo.Username,
-                            // 5 Memory usage
-                            BytesToReadableValue(process.PrivateMemorySize64),
-                            // 6 Description of the process
-                            "?" //extraProcessInfo.Description
-                        };
-
-                        //
-                        // As not every process has an icon then, prevent the app from crash
                         try
                         {
-                            //log.Log("Attempting to get icon from process...");
+                            //log.Log("Trying to read from Process ID: {0}", process.Id.ToString("X"));
+                            // Define the status from a boolean to a simple string
+                            var status = process.Responding ? "Responding" : "Not responding";
 
-                            Imagelist.Images.Add(
-                                // Add an unique Key as identifier for the icon (same as the ID of the process)
+                            // Retrieve the object of extra information of the process (to retrieve Username and Description)
+                            //dynamic extraProcessInfo = GetProcessExtraInformation(process.Id);
+
+                            // Create an array of string that will store the information to display in our 
+                            string[] row =
+                            {
+                                // 1 Process name
+                                process.ProcessName,
+                                // 2 Process ID
                                 process.Id.ToString(),
-                                // Add Icon to the List 
-                                Icon.ExtractAssociatedIcon(process.MainModule.FileName).ToBitmap()
-                            );
-                        }
-                        catch (Exception exy)
-                        {
-                            log.Log(exy, "Failed to retrieve process icon: {0}",
-                                Marshal.GetLastWin32Error().ToString("X"));
-                        }
+                                // 3 Process status
+                                status,
+                                // 4 Username that started the process
+                                "?", //extraProcessInfo.Username,
+                                // 5 Memory usage
+                                BytesToReadableValue(process.PrivateMemorySize64),
+                                // 6 Description of the process
+                                "?" //extraProcessInfo.Description
+                            };
 
-                        // Create a new Item to add into the list view that expects the row of information as first argument
-                        var item = new ListViewItem(row)
-                        {
-                            // Set the ImageIndex of the item as the same defined in the previous try-catch
-                            ImageIndex = Imagelist.Images.IndexOfKey(process.Id.ToString())
-                        };
+                            //
+                            // As not every process has an icon then, prevent the app from crash
+                            try
+                            {
+                                //log.Log("Attempting to get icon from process...");
 
-                        // Add the Item
-                        lstProcs.Items.Add(item);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Log(ex, "Failed to read process: {0}", Marshal.GetLastWin32Error().ToString("X"));
+                                Imagelist.Images.Add(
+                                    // Add an unique Key as identifier for the icon (same as the ID of the process)
+                                    process.Id.ToString(),
+                                    // Add Icon to the List 
+                                    Icon.ExtractAssociatedIcon(process.MainModule.FileName).ToBitmap()
+                                );
+                            }
+                            catch (Exception exy)
+                            {
+                                log.Log(exy, "Failed to retrieve process icon: {0}",
+                                    Marshal.GetLastWin32Error().ToString("X"));
+                            }
+
+                            // Create a new Item to add into the list view that expects the row of information as first argument
+                            var item = new ListViewItem(row)
+                            {
+                                // Set the ImageIndex of the item as the same defined in the previous try-catch
+                                ImageIndex = Imagelist.Images.IndexOfKey(process.Id.ToString())
+                            };
+
+                            // Add the Item
+                            lstProcs.Items.Add(item);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Log(ex, "Failed to read process: {0}", Marshal.GetLastWin32Error().ToString("X"));
+                        }
                     }
 
                 // Set the imagelist of your list view the previous created list :)

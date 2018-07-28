@@ -1,10 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using AsmResolver;
 
 namespace Engine.Assembly
 {
+    /// <summary>
+    ///     General .NET Method Structure
+    /// </summary>
+    public struct PENetMethod
+    {
+        public string Name { get; }
+        public bool IsStatic { get; }
+
+        public PENetMethod(string name, bool isStatic)
+        {
+            Name = name;
+            IsStatic = isStatic;
+        }
+    }
+
+    /// <summary>
+    ///     General .NET Type Structure
+    /// </summary>
+    public struct PENetType
+    {
+        public PENetMethod[] Methods => hasMethods ? methods.ToArray() : null;
+        private static List<PENetMethod> methods = new List<PENetMethod>();
+        private bool hasMethods { get; }
+
+        public string Name { get; }
+        public bool IsClass { get; }
+
+        public PENetType(Type typeToAdd)
+        {
+            Name = typeToAdd.FullName;
+            IsClass = typeToAdd.IsClass;
+            if (typeToAdd.GetMethods().Length > 0)
+            {
+                hasMethods = true;
+                try
+                {
+                    foreach (var meth in typeToAdd.GetMethods())
+                    {
+                        methods.Add(new PENetMethod(meth.Name, meth.IsStatic));
+                    }
+                }
+                catch { }
+            }
+            else
+            {
+                hasMethods = false;
+            }
+        }
+    }
+
     /// <summary>
     ///     General Export Structure
     /// </summary>
@@ -100,6 +151,7 @@ namespace Engine.Assembly
     {
         private readonly Logger log; // = new Logger(LoggerType.Console_File, "Assembly.PEReader");
         private WindowsAssembly wasm;
+        private byte[] asmBytes;
 
         /// <summary>
         ///     Initializes PEReader using the filepath of a PE to read
@@ -114,6 +166,7 @@ namespace Engine.Assembly
 
             try
             {
+                asmBytes = File.ReadAllBytes(fileName);
                 wasm = WindowsAssembly.FromFile(fileName);
             }
             catch (Exception ex)
@@ -132,6 +185,7 @@ namespace Engine.Assembly
 
             try
             {
+                asmBytes = fileBytes;
                 wasm = WindowsAssembly.FromBytes(fileBytes);
             }
             catch (Exception e)
@@ -139,6 +193,11 @@ namespace Engine.Assembly
                 log.Log(e, "Exception on loading file");
             }
         }
+
+        /// <summary>
+        ///     Returns wether the PE's base-code is a Managed .NET assembly or not
+        /// </summary>
+        public bool IsNet => wasm.NetDirectory != null;
 
         /// <summary>
         ///     Returns wether the PE's architecture is 64-bit or not
@@ -198,6 +257,43 @@ namespace Engine.Assembly
 
                     return imp.ToArray();
                 }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        ///     Gets and array of the current PE's .NET types - if none is found, a null is returned
+        /// </summary>
+        public PENetType[] GetNetTypes
+        {
+            get
+            {
+                if (IsNet)
+                {
+                    var typs = new List<PENetType>();
+
+                    var nAsm = System.Reflection.Assembly.Load(asmBytes);
+                    try
+                    {
+                        foreach (var tp in nAsm.GetTypes())
+                        {
+                            if (tp.IsPublic && tp.IsVisible && tp.GetMethods().Length > 0)
+                                typs.Add(new PENetType(tp));
+                        }
+
+                        log.Log(LogType.Success, "Succesfully read {0} types from the PE...", typs.Count.ToString());
+
+                        return typs.ToArray();
+                    }
+                    catch { }
+
+                    log.Log(LogType.Failure, "Something went wrong when reading the types of the .NET assembly: {0}",
+                        Marshal.GetLastWin32Error().ToString("X"));
+
+                    return null;
+                }
+                log.Log(LogType.Error, "This PE is NOT a .NET assembly!");
 
                 return null;
             }

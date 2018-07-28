@@ -180,7 +180,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AsmResolver2\AsmResolver\AsmResolver.csproj">
+    <ProjectReference Include="..\AsmResolver\AsmResolver.csproj">
       <Project>{228b5994-1035-4eb0-a095-8d85b6ee1146}</Project>
       <Name>AsmResolver</Name>
     </ProjectReference>

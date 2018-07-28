@@ -5,6 +5,17 @@
 
 
 
+[V0.1.0.0 xx.xx.2018]
+=====================
+Injectors:
+ +Added Managed Assembly Invoke injection method by me... 
+  (based loosely on Tim MalcomVetter's PoC)
+
+Engine:
+ +Added IsNet method for checking wether PE is .NET or not...
+ +Added GetNetTypes, PENetMethod, and PENetType for .NET PE reading
+  purposes...
+
 [V0.1.0.0 23.07.2018]
 =====================
 Injectors:

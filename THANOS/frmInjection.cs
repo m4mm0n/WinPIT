@@ -85,6 +85,8 @@ namespace THANOS
             metroTabControl1.SelectTab(metroTabPage1);
         }
 
+        private object threadLock = new object();
+
         private void LoadInjections()
         {
             if (InvokeRequired)
@@ -93,8 +95,11 @@ namespace THANOS
             }
             else
             {
-                Injectors = InjectionsLoader.GetInjectors();
-                foreach (var injector in Injectors) cbMethods.Items.Add(injector.SelfFileName);
+                lock (threadLock)
+                {
+                    Injectors = InjectionsLoader.GetInjectors();
+                    foreach (var injector in Injectors) cbMethods.Items.Add(injector.SelfFileName);
+                }
             }
         }
 
