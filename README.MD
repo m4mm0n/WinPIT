@@ -39,4 +39,8 @@ There are a few limitations towards who may be able to run this tool;
 
 Credits are due where credits are due, no greets and no regrets!
 
+## Credits:
+AssemblyResolver - Washi
+...all other's code should be credited in code, but if it isn't - message me ;)
+
 (c)mammon, 2018
